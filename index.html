@@ -17,18 +17,13 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         .card {
-            cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
-            border: 2px solid transparent;
+            border: 3px solid transparent;
             background-color: #173f67; /* Darker Blue */
         }
-        .card:hover {
-            transform: translateY(-3px) scale(1.03);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.6);
-        }
-        .card-selected {
-            border-color: #ffd700; /* Gold */
-            box-shadow: 0 0 15px #ffd700;
+        .card-drawn {
+            border-color: #ffd700; /* Gold highlight when drawn */
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
         .slot {
             transition: background-color 0.2s;
@@ -52,7 +47,7 @@
             box-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
         }
         .button-primary {
-            background-color: #e53e3e; /* Red for action */
+            background-color: #e53e3e; /* Red for Skip/Action */
             box-shadow: 0 4px #9b2c2c;
             transition: background-color 0.1s, transform 0.1s, box-shadow 0.1s;
         }
@@ -61,7 +56,7 @@
             box-shadow: 0 2px #9b2c2c;
         }
         .button-secondary {
-            background-color: #38a169; /* Green for draw */
+            background-color: #38a169; /* Green for Draw */
             box-shadow: 0 4px #2f855a;
             transition: background-color 0.1s, transform 0.1s, box-shadow 0.1s;
         }
@@ -120,9 +115,9 @@
                     Draw Card
                 </button>
                 <button id="skip-button" onclick="skipTurn()" class="button-primary text-white py-3 px-6 rounded-lg font-bold uppercase disabled:opacity-50 disabled:shadow-none hover:bg-red-600 transition">
-                    Skip Turn (<span id="player-skip-status">1</span> Left)
+                    Skip Card (<span id="player-skip-status">1</span> Left)
                 </button>
-                <button id="new-game-button" onclick="initGame()" class="bg-gray-500 text-white py-3 px-6 rounded-lg font-bold uppercase shadow-md disabled:hidden">
+                <button id="new-game-button" onclick="initGame()" class="bg-gray-500 text-white py-3 px-6 rounded-lg font-bold uppercase shadow-md hidden">
                     New Game
                 </button>
             </div>
@@ -141,8 +136,9 @@
         { name: 'Support', count: 2 }
     ].flatMap(slot => Array(slot.count).fill(slot.name));
 
-    // Expanded Character Roster (20 Cards)
+    // Expanded Character Roster (30 Cards)
     const CARDS = [
+        // Straw Hats + Allies
         { id: 'luffy', name: 'Monkey D. Luffy', role_affinity: ['Captain', 'Support'], stats: { Attack: 90, Defense: 60, Healing: 10 }, img_url: 'https://placehold.co/100x140/f33/000?text=L' },
         { id: 'zoro', name: 'Roronoa Zoro', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 85, Defense: 70, Healing: 5 }, img_url: 'https://placehold.co/100x140/3c3/000?text=Z' },
         { id: 'nami', name: 'Nami', role_affinity: ['Support'], stats: { Attack: 40, Defense: 20, Healing: 50 }, img_url: 'https://placehold.co/100x140/fa5/000?text=N' },
@@ -152,17 +148,30 @@
         { id: 'franky', name: 'Franky', role_affinity: ['Tank', 'Support'], stats: { Attack: 60, Defense: 80, Healing: 0 }, img_url: 'https://placehold.co/100x140/888/000?text=F' },
         { id: 'jinbe', name: 'Jinbe', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 70, Defense: 95, Healing: 5 }, img_url: 'https://placehold.co/100x140/007/FFF?text=J' },
         { id: 'brook', name: 'Brook', role_affinity: ['Support'], stats: { Attack: 55, Defense: 25, Healing: 30 }, img_url: 'https://placehold.co/100x140/fff/000?text=B' },
-        { id: 'ace', name: 'Portgas D. Ace', role_affinity: ['Captain', 'Vice Captain'], stats: { Attack: 95, Defense: 50, Healing: 5 }, img_url: 'https://placehold.co/100x140/f00/000?text=A' },
+        { id: 'ussop', name: 'God Usopp', role_affinity: ['Support'], stats: { Attack: 45, Defense: 30, Healing: 35 }, img_url: 'https://placehold.co/100x140/6a0/000?text=U' },
         { id: 'law', name: 'Trafalgar Law', role_affinity: ['Healer', 'Captain'], stats: { Attack: 80, Defense: 40, Healing: 60 }, img_url: 'https://placehold.co/100x140/04a/FFF?text=T' },
+        { id: 'kid', name: 'Eustass Kid', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 88, Defense: 72, Healing: 0 }, img_url: 'https://placehold.co/100x140/f80/000?text=K' },
+        // Emperors & Commanders
         { id: 'shanks', name: 'Shanks', role_affinity: ['Captain'], stats: { Attack: 100, Defense: 70, Healing: 0 }, img_url: 'https://placehold.co/100x140/aa0/000?text=S' },
-        { id: 'hancock', name: 'Boa Hancock', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 85, Defense: 40, Healing: 15 }, img_url: 'https://placehold.co/100x140/f6a/000?text=B' },
-        { id: 'doffy', name: 'Doflamingo', role_affinity: ['Captain'], stats: { Attack: 92, Defense: 55, Healing: 3 }, img_url: 'https://placehold.co/100x140/90c/FFF?text=D' },
-        { id: 'mihawk', name: 'Dracule Mihawk', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 98, Defense: 75, Healing: 0 }, img_url: 'https://placehold.co/100x140/000/FFF?text=M' },
-        { id: 'kuma', name: 'Bartholomew Kuma', role_affinity: ['Tank', 'Support'], stats: { Attack: 65, Defense: 100, Healing: 0 }, img_url: 'https://placehold.co/100x140/ccc/000?text=K' },
-        { id: 'perona', name: 'Perona', role_affinity: ['Support'], stats: { Attack: 35, Defense: 25, Healing: 45 }, img_url: 'https://placehold.co/100x140/f9f/000?text=P' },
-        { id: 'ivankov', name: 'Emporio Ivankov', role_affinity: ['Healer', 'Support'], stats: { Attack: 50, Defense: 30, Healing: 70 }, img_url: 'https://placehold.co/100x140/a0a/FFF?text=I' },
-        { id: 'smoker', name: 'Smoker', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 70, Defense: 88, Healing: 0 }, img_url: 'https://placehold.co/100x140/777/FFF?text=S' },
-        { id: 'koby', name: 'Koby', role_affinity: ['Support'], stats: { Attack: 65, Defense: 45, Healing: 10 }, img_url: 'https://placehold.co/100x140/0af/000?text=K' },
+        { id: 'ace', name: 'Portgas D. Ace', role_affinity: ['Captain', 'Vice Captain'], stats: { Attack: 95, Defense: 50, Healing: 5 }, img_url: 'https://placehold.co/100x140/f00/000?text=A' },
+        { id: 'katakuri', name: 'Katakuri', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 93, Defense: 80, Healing: 0 }, img_url: 'https://placehold.co/100x140/c0f/000?text=Ka' },
+        { id: 'marco', name: 'Marco the Phoenix', role_affinity: ['Healer', 'Support'], stats: { Attack: 70, Defense: 60, Healing: 95 }, img_url: 'https://placehold.co/100x140/0ff/000?text=Ma' },
+        { id: 'king', name: 'King', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 82, Defense: 98, Healing: 0 }, img_url: 'https://placehold.co/100x140/333/FFF?text=Ki' },
+        // Warlords & Marines
+        { id: 'hancock', name: 'Boa Hancock', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 85, Defense: 40, Healing: 15 }, img_url: 'https://placehold.co/100x140/f6a/000?text=Bo' },
+        { id: 'doffy', name: 'Doflamingo', role_affinity: ['Captain'], stats: { Attack: 92, Defense: 55, Healing: 3 }, img_url: 'https://placehold.co/100x140/90c/FFF?text=Do' },
+        { id: 'mihawk', name: 'Dracule Mihawk', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 98, Defense: 75, Healing: 0 }, img_url: 'https://placehold.co/100x140/000/FFF?text=Mi' },
+        { id: 'kuma', name: 'Bartholomew Kuma', role_affinity: ['Tank', 'Support'], stats: { Attack: 65, Defense: 100, Healing: 0 }, img_url: 'https://placehold.co/100x140/ccc/000?text=Ku' },
+        { id: 'smoker', name: 'Smoker', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 70, Defense: 88, Healing: 0 }, img_url: 'https://placehold.co/100x140/777/FFF?text=Sm' },
+        { id: 'koby', name: 'Koby', role_affinity: ['Support'], stats: { Attack: 65, Defense: 45, Healing: 10 }, img_url: 'https://placehold.co/100x140/0af/000?text=Ko' },
+        { id: 'garp', name: 'Garp', role_affinity: ['Captain', 'Tank'], stats: { Attack: 97, Defense: 90, Healing: 0 }, img_url: 'https://placehold.co/100x140/a50/FFF?text=Ga' },
+        // Other Notables
+        { id: 'perona', name: 'Perona', role_affinity: ['Support'], stats: { Attack: 35, Defense: 25, Healing: 45 }, img_url: 'https://placehold.co/100x140/f9f/000?text=Pe' },
+        { id: 'ivankov', name: 'E. Ivankov', role_affinity: ['Healer', 'Support'], stats: { Attack: 50, Defense: 30, Healing: 70 }, img_url: 'https://placehold.co/100x140/a0a/FFF?text=Iv' },
+        { id: 'hatchan', name: 'Hatchan', role_affinity: ['Tank', 'Support'], stats: { Attack: 55, Defense: 65, Healing: 10 }, img_url: 'https://placehold.co/100x140/0f8/000?text=Ha' },
+        { id: 'buggy', name: 'Buggy D. Clown', role_affinity: ['Captain', 'Support'], stats: { Attack: 20, Defense: 15, Healing: 15 }, img_url: 'https://placehold.co/100x140/d00/FFF?text=Bu' },
+        { id: 'vivi', name: 'Vivi Nefertari', role_affinity: ['Healer', 'Support'], stats: { Attack: 30, Defense: 20, Healing: 65 }, img_url: 'https://placehold.co/100x140/4ac/FFF?text=Vi' },
+        { id: 'sabo', name: 'Sabo', role_affinity: ['Vice Captain', 'Captain'], stats: { Attack: 90, Defense: 65, Healing: 5 }, img_url: 'https://placehold.co/100x140/055/FFF?text=Sa' },
     ];
 
     // --- Game State ---
@@ -174,10 +183,10 @@
             1: { team: [], skipped: false, score: 0 },
             2: { team: [], skipped: false, score: 0 }
         },
-        selectedCard: null,
+        // selectedCard: null, // Card selection is now implicit via cardPool[0]
         totalTurns: 0,
         gameEnded: false,
-        cardDrawn: false, // New state to enforce Draw -> Place sequence
+        cardDrawn: false, // State to track if a card is currently drawn and waiting placement/skip
     };
 
     // --- Utility Functions ---
@@ -211,7 +220,6 @@
         gameState.gameEnded = false;
         gameState.totalTurns = 0;
         gameState.cardPool = [];
-        gameState.selectedCard = null;
         gameState.cardDrawn = false;
         
         document.getElementById('new-game-button').classList.add('hidden');
@@ -225,7 +233,7 @@
     function drawCard() {
         if (gameState.gameEnded || gameState.cardDrawn) return;
         if (gameState.deck.length === 0) {
-            document.getElementById('game-status').textContent = "Deck is empty! You must use your skip or wait for the opponent to finish.";
+            document.getElementById('game-status').textContent = "Deck is empty! All cards have been drafted or skipped.";
             return;
         }
 
@@ -267,7 +275,7 @@
 
         // 3. Captain Bonus (Multiplicative)
         if (captainAttack > 0) {
-            // Apply 1.5 multiplier to the Captain's Attack stat and add the bonus amount to the score
+            // Add 50% of the Captain's Attack stat as a bonus
             score += Math.round(captainAttack * 0.5); 
         }
 
@@ -307,8 +315,9 @@
     function renderGame() {
         // Status Update
         if (!gameState.gameEnded) {
+            const playerState = gameState.cardDrawn ? 'Place the Card or Skip it.' : 'Click "Draw Card" to start your turn.';
             document.getElementById('game-status').textContent = 
-                `Turn: ${gameState.totalTurns + 1}. It is Player ${gameState.currentPlayer}'s turn.`;
+                `Turn: ${gameState.totalTurns + 1}. It is Player ${gameState.currentPlayer}'s turn. ${playerState}`;
         }
         document.getElementById('deck-count').textContent = gameState.deck.length;
 
@@ -340,19 +349,19 @@
             poolEl.innerHTML = `
                 <div class="text-center p-4 border border-gray-600 rounded-lg w-full sm:w-40 h-48 flex items-center justify-center">
                     <p class="text-sm text-gray-400 font-semibold">
-                        ${gameState.gameEnded ? 'Draft Complete' : 'Click "Draw Card"'}
+                        ${gameState.gameEnded ? 'Draft Complete' : 'Card Pool Empty'}
                     </p>
                 </div>`;
             return;
         }
 
         const card = gameState.cardPool[0];
-        const isSelected = gameState.selectedCard && gameState.selectedCard.card.id === card.id;
+
         const affinityText = card.role_affinity.join(', ');
 
+        // The card is automatically "selected" because it's the only one available
         const cardHtml = `
-            <div class="card ${isSelected ? 'card-selected' : ''} w-full sm:w-40 p-3 rounded-lg shadow-lg" 
-                 onclick="selectCard(0, this)">
+            <div class="card card-drawn w-full sm:w-40 p-3 rounded-lg shadow-lg">
                 <img src="${card.img_url}" alt="${card.name}" class="w-full h-auto rounded-md mb-2">
                 <h4 class="text-lg font-bold truncate text-yellow-300">${card.name}</h4>
                 <p class="text-xs mb-1">Affinity: <span class="text-cyan-400">${affinityText}</span></p>
@@ -376,7 +385,8 @@
             
             gameState.players[playerId].team.forEach((slot, index) => {
                 const isCurrentPlayer = gameState.currentPlayer === playerId;
-                const isReadyToPlace = isCurrentPlayer && gameState.selectedCard && !slot.card;
+                // Active slot if it's the current player, the card is drawn, and the slot is empty
+                const isReadyToPlace = isCurrentPlayer && gameState.cardDrawn && !slot.card; 
                 
                 const card = slot.card;
                 let cardContent = '';
@@ -394,7 +404,7 @@
                     cardContent = `
                         <p class="text-center font-bold text-gray-400">${slot.role}</p>
                         <p class="text-center text-xs text-gray-500">
-                            ${isReadyToPlace ? 'Click to Place' : 'Empty Slot'}
+                            ${isReadyToPlace ? 'Click to Place Card' : 'Empty Slot'}
                         </p>
                     `;
                 }
@@ -418,9 +428,7 @@
             if (crewCount === 6) {
                  gameState.players[playerId].score = calculateScore(gameState.players[playerId].team);
                  scoreDisplayEl.textContent = `Player ${playerId}: Final Score ${gameState.players[playerId].score}`;
-            } else if (scoreDisplayEl.textContent.includes('Final Score')) {
-                // Keep displaying final score if already calculated
-            } else {
+            } else if (!scoreDisplayEl.textContent.includes('Final Score')) {
                  scoreDisplayEl.textContent = `Player ${playerId}: Crew (${crewCount}/6)`;
             }
         }
@@ -442,66 +450,27 @@
             return;
         }
 
-        // Draw Button Logic
+        // Draw Button Logic: Enabled only if no card is currently drawn and deck is not empty
         drawBtn.disabled = gameState.cardDrawn || gameState.deck.length === 0;
 
-        // Skip Button Logic
-        skipBtn.disabled = player.skipped || gameState.cardPool.length === 0 || gameState.deck.length === 0;
-        
-        // If card is drawn, you must place it or skip it (if available)
-        if (gameState.cardDrawn) {
-            drawBtn.disabled = true;
-        }
-        
-        // If deck is empty, you can only skip if you haven't yet, otherwise controls are disabled
-        if (gameState.deck.length === 0) {
-            drawBtn.disabled = true;
-        }
+        // Skip Button Logic: Enabled only if a card is drawn AND player hasn't skipped AND deck is not empty
+        skipBtn.disabled = !gameState.cardDrawn || player.skipped || gameState.deck.length === 0;
     }
 
     // --- Game Actions ---
 
     /**
-     * Selects the single drawn card.
-     * @param {number} poolIndex Index in the card pool array (always 0 here).
-     * @param {HTMLElement} element The clicked card element.
-     */
-    function selectCard(poolIndex, element) {
-        if (gameState.gameEnded || !gameState.cardDrawn) return;
-
-        // Deselect any previously selected card UI
-        document.querySelectorAll('.card').forEach(c => c.classList.remove('card-selected'));
-
-        if (gameState.selectedCard && gameState.selectedCard.card.id === gameState.cardPool[poolIndex].id) {
-            // Deselect
-            gameState.selectedCard = null;
-        } else {
-            // Select new card
-            gameState.selectedCard = {
-                card: gameState.cardPool[poolIndex],
-                index: poolIndex // always 0
-            };
-            element.classList.add('card-selected');
-        }
-
-        renderPlayerBoards(); // Re-render to show active slots
-    }
-
-    /**
-     * Places the selected card into a player's crew slot.
+     * Places the drawn card into a player's crew slot.
      * @param {number} playerId The ID of the player (1 or 2).
      * @param {number} slotIndex The index of the slot in the player's team array.
      */
     function placeCard(playerId, slotIndex) {
         if (gameState.gameEnded) return;
         if (playerId !== gameState.currentPlayer) return;
-        if (!gameState.selectedCard) {
-            console.log("No card selected.");
-            // Notify user visually that they must select the card
-            if (gameState.cardPool.length > 0) {
-                document.getElementById('game-status').textContent = `Player ${playerId}: Select the drawn card first!`;
-                return;
-            }
+
+        // Placement can only happen if a card is currently drawn
+        if (!gameState.cardDrawn || gameState.cardPool.length === 0) {
+            document.getElementById('game-status').textContent = `Player ${playerId}: Draw a card first!`;
             return;
         }
 
@@ -513,53 +482,53 @@
             return;
         }
         
-        // Check if the slot belongs to the current player
-        if (playerId !== gameState.currentPlayer) {
-            document.getElementById('game-status').textContent = `Wait, it is Player ${gameState.currentPlayer}'s turn!`;
-            return;
-        }
+        // Place the drawn card (the only one in the pool)
+        slot.card = gameState.cardPool[0];
 
-        // Place the card
-        slot.card = gameState.selectedCard.card;
-
-        // Clear the card pool
+        // Clear the card pool and end turn
         gameState.cardPool = [];
-        
-        endTurn();
+        endTurn(true); // Placed card, so move to next player
     }
 
     /**
-     * Uses the player's skip action.
+     * Uses the player's skip action, discarding the current card and drawing a new one.
      */
     function skipTurn() {
-        if (gameState.gameEnded || !gameState.cardDrawn) return;
+        if (gameState.gameEnded || !gameState.cardDrawn || gameState.cardPool.length === 0) return;
         
         const player = gameState.players[gameState.currentPlayer];
         if (player.skipped) {
             console.log("Player has already skipped.");
             return;
         }
-        if (gameState.cardPool.length === 0) return; // Cannot skip if no card is drawn
 
-        // Use skip
+        // 1. Use skip allowance
         player.skipped = true;
 
-        // Discard the current pool (the single card)
+        // 2. Discard the current card (clear the pool)
         gameState.cardPool = [];
-
-        endTurn();
+        
+        // 3. Draw a new card immediately (stay on the same player's turn)
+        drawCard();
+        
+        // 4. Update total turns and render (no need to switch player)
+        gameState.totalTurns++;
+        renderGame();
     }
 
     /**
-     * Finalizes the turn and switches to the next player.
+     * Finalizes the turn and switches to the next player if placement occurred.
+     * @param {boolean} placementOccurred True if a card was successfully placed.
      */
-    function endTurn() {
-        gameState.totalTurns++;
-        gameState.selectedCard = null;
-        gameState.cardDrawn = false;
-        
-        // Switch player
-        gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+    function endTurn(placementOccurred) {
+        // Only switch player if a card was actually placed
+        if (placementOccurred) {
+            gameState.totalTurns++;
+            gameState.cardDrawn = false;
+            
+            // Switch player
+            gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+        }
 
         checkGameEnd();
         renderGame();
