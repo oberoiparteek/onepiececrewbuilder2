@@ -80,7 +80,7 @@
 
     <!-- Main Game Area -->
     <div class="max-w-7xl mx-auto">
-       
+    
         <!-- Player Boards (Flex container for responsive layout) -->
         <div class="flex flex-col lg:flex-row gap-8 mb-8">
             <!-- Player 1 Board -->
@@ -90,7 +90,10 @@
                     <!-- Slots will be injected here -->
                 </div>
             </div>
-
+            <!-- Card Pool & Controls / Final Scoreboard -->
+            <div id="controls-area" class="bg-gray-800/70 p-6 rounded-xl shadow-inner border border-gray-700">
+                <!-- Content will be swapped between Drafting UI and Scoreboard -->
+            </div>
             <!-- Player 2 Board -->
             <div id="player-2-board" class="lg:w-1/2 p-4 rounded-xl shadow-2xl transition duration-300" style="background-color: #123456;">
                 <h2 class="title-font text-3xl mb-4 text-center text-yellow-300">Player 2: Pirate Alliance</h2>
@@ -100,10 +103,7 @@
             </div>
         </div>
 
-        <!-- Card Pool & Controls / Final Scoreboard -->
-        <div id="controls-area" class="bg-gray-800/70 p-6 rounded-xl shadow-inner border border-gray-700">
-            <!-- Content will be swapped between Drafting UI and Scoreboard -->
-        </div>
+        
     </div>
 </div>
 
@@ -481,7 +481,6 @@
 
         // This structure is rebuilt on every renderGame call when not ended
         poolEl.innerHTML = `
-            <h3 class="text-2xl font-semibold text-center mb-4 text-cyan-300">Drafting Pool (<span id="deck-count">${gameState.deck.length}</span> Cards Left)</h3>
             <div id="card-pool-content" class="flex justify-center gap-4 mb-6 min-h-48">
                 <!-- Card will be injected here -->
             </div>
@@ -498,9 +497,9 @@
         const cardPoolContentEl = document.getElementById('card-pool-content');
         if (gameState.cardPool.length === 0) {
             cardPoolContentEl.innerHTML = `
-                <div class="text-center p-4 border border-gray-600 rounded-lg w-full sm:w-40 h-48 flex items-center justify-center">
+                <div onclick="drawCard()" class="text-center p-4 border border-gray-600 rounded-lg w-full sm:w-40 h-48 flex items-center justify-center cursor-pointer">
                     <p class="text-sm text-gray-400 font-semibold">
-                        Waiting for Draw
+                        Click to Draw
                     </p>
                 </div>`;
             return;
