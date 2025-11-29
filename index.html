@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pirata+One&display=swap');
-        
+       
         body {
             font-family: 'Inter', sans-serif;
             background-color: #0b1a2b; /* Deep Sea Blue */
@@ -75,12 +75,12 @@
         <h1 class="title-font text-5xl sm:text-7xl font-bold text-yellow-400 drop-shadow-lg mb-2">
             One Piece Crew Builder
         </h1>
-        <p id="game-status" class="text-xl font-semibold text-gray-300"></p>
+        <p id="game-status" class="text-xl sm:text-2xl font-semibold text-gray-300 min-h-8"></p>
     </header>
 
     <!-- Main Game Area -->
     <div class="max-w-7xl mx-auto">
-        
+       
         <!-- Player Boards (Flex container for responsive layout) -->
         <div class="flex flex-col lg:flex-row gap-8 mb-8">
             <!-- Player 1 Board -->
@@ -100,27 +100,9 @@
             </div>
         </div>
 
-        <!-- Card Pool & Controls -->
+        <!-- Card Pool & Controls / Final Scoreboard -->
         <div id="controls-area" class="bg-gray-800/70 p-6 rounded-xl shadow-inner border border-gray-700">
-            <h3 class="text-2xl font-semibold text-center mb-4 text-cyan-300">Drafting Pool (<span id="deck-count">X</span> Cards Left)</h3>
-            
-            <!-- Card Pool (Only one card shown) -->
-            <div id="card-pool" class="flex justify-center gap-4 mb-6 min-h-48">
-                <!-- Card will be injected here -->
-            </div>
-
-            <!-- Actions -->
-            <div class="flex justify-center gap-4 flex-wrap">
-                <button id="draw-button" onclick="drawCard()" class="button-secondary text-white py-3 px-6 rounded-lg font-bold uppercase disabled:opacity-50 disabled:shadow-none hover:bg-green-600 transition">
-                    Draw Card
-                </button>
-                <button id="skip-button" onclick="skipTurn()" class="button-primary text-white py-3 px-6 rounded-lg font-bold uppercase disabled:opacity-50 disabled:shadow-none hover:bg-red-600 transition">
-                    Skip Card (<span id="player-skip-status">1</span> Left)
-                </button>
-                <button id="new-game-button" onclick="initGame()" class="bg-gray-500 text-white py-3 px-6 rounded-lg font-bold uppercase shadow-md hidden">
-                    New Game
-                </button>
-            </div>
+            <!-- Content will be swapped between Drafting UI and Scoreboard -->
         </div>
     </div>
 </div>
@@ -153,7 +135,7 @@
         { id: 'kid', name: 'Eustass Kid', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 88, Defense: 72, Healing: 0 }, img_url: 'https://placehold.co/100x140/f80/000?text=K' },
         { id: 'sabo', name: 'Sabo', role_affinity: ['Vice Captain', 'Captain'], stats: { Attack: 90, Defense: 65, Healing: 5 }, img_url: 'https://placehold.co/100x140/055/FFF?text=Sa' },
         { id: 'vivi', name: 'Vivi Nefertari', role_affinity: ['Healer', 'Support'], stats: { Attack: 30, Defense: 20, Healing: 65 }, img_url: 'https://placehold.co/100x140/4ac/FFF?text=Vi' },
-        
+       
         // Emperors & Commanders
         { id: 'shanks', name: 'Shanks', role_affinity: ['Captain'], stats: { Attack: 100, Defense: 70, Healing: 0 }, img_url: 'https://placehold.co/100x140/aa0/000?text=Sh' },
         { id: 'ace', name: 'Portgas D. Ace', role_affinity: ['Captain', 'Vice Captain'], stats: { Attack: 95, Defense: 50, Healing: 5 }, img_url: 'https://placehold.co/100x140/f00/000?text=A' },
@@ -194,15 +176,15 @@
     // --- Game State ---
     let gameState = {
         deck: [],
-        cardPool: [], 
+        cardPool: [],
         currentPlayer: 1,
         players: {
-            1: { team: [], skipped: false, score: 0 },
-            2: { team: [], skipped: false, score: 0 }
+            1: { team: [], skipped: false, score: 0, scoreBreakdown: {} },
+            2: { team: [], skipped: false, score: 0, scoreBreakdown: {} }
         },
         totalTurns: 0,
         gameEnded: false,
-        cardDrawn: false, 
+        cardDrawn: false,
     };
 
     // --- Utility Functions ---
@@ -228,6 +210,7 @@
     function initGame() {
         console.log("Game initialized.");
         gameState.deck = shuffleArray([...CARDS]);
+        // Reset player teams to empty slots
         gameState.players[1].team = CREW_SLOTS.map(role => ({ role, card: null }));
         gameState.players[2].team = CREW_SLOTS.map(role => ({ role, card: null }));
         gameState.currentPlayer = 1;
@@ -237,9 +220,13 @@
         gameState.totalTurns = 0;
         gameState.cardPool = [];
         gameState.cardDrawn = false;
-        
-        document.getElementById('new-game-button').classList.add('hidden');
-        
+       
+        // Reset scores and breakdown
+        gameState.players[1].score = 0;
+        gameState.players[2].score = 0;
+        gameState.players[1].scoreBreakdown = {};
+        gameState.players[2].scoreBreakdown = {};
+       
         renderGame();
     }
 
@@ -248,9 +235,8 @@
      * @param {boolean} doRender If true, calls renderGame(). Used to prevent double rendering during skip.
      */
     function drawCard(doRender = true) {
-        // Only run if a card is not already drawn
-        if (gameState.gameEnded || gameState.cardDrawn) return; 
-        
+        if (gameState.gameEnded || gameState.cardDrawn) return;
+       
         if (gameState.deck.length === 0) {
             document.getElementById('game-status').textContent = "Deck is empty! You must place remaining cards.";
             return;
@@ -258,32 +244,35 @@
 
         gameState.cardPool = [gameState.deck.pop()];
         gameState.cardDrawn = true;
-        
+       
         if (doRender) {
             renderGame();
         }
     }
 
     /**
-     * Calculates the score for a player's crew.
+     * Calculates the score and breakdown for a player's crew.
      * @param {Array<Object>} team The player's crew array.
-     * @returns {number} The calculated score.
+     * @returns {{score: number, breakdown: Object}} The score and calculation breakdown.
      */
     function calculateScore(team) {
-        let score = 0;
+        let baseStatScore = 0;
+        let synergyBonus = 0;
         let captainAttack = 0;
-        
+        let captainBonus = 0;
+       
         team.forEach(slot => {
             if (slot.card) {
                 const card = slot.card;
                 const role = slot.role;
-                
+               
                 // 1. Base Score
-                score += card.stats.Attack + card.stats.Defense + card.stats.Healing;
+                const cardBaseScore = card.stats.Attack + card.stats.Defense + card.stats.Healing;
+                baseStatScore += cardBaseScore;
 
-                // 2. Role Synergy Bonus
+                // 2. Role Synergy Bonus (50 points for matching)
                 if (card.role_affinity.includes(role)) {
-                    score += 50; // Major Bonus
+                    synergyBonus += 50;
                 }
 
                 // 3. Track Captain Attack for Multiplier
@@ -293,12 +282,23 @@
             }
         });
 
-        // 3. Captain Bonus (Multiplicative)
+        // 4. Calculate Captain Bonus (50% of Captain's Attack)
         if (captainAttack > 0) {
-            score += Math.round(captainAttack * 0.5); 
+            captainBonus = Math.round(captainAttack * 0.5);
         }
+       
+        const totalScore = baseStatScore + synergyBonus + captainBonus;
 
-        return score;
+        return {
+            score: totalScore,
+            breakdown: {
+                baseStatScore,
+                synergyBonus,
+                captainAttack,
+                captainBonus,
+                totalScore
+            }
+        };
     }
 
     /**
@@ -308,45 +308,158 @@
         const crew1Count = gameState.players[1].team.filter(s => s.card !== null).length;
         const crew2Count = gameState.players[2].team.filter(s => s.card !== null).length;
 
-        // Game ends when both crews are full
+        // Game ends when both crews are full (6 cards each)
         if (crew1Count === 6 && crew2Count === 6) {
             gameState.gameEnded = true;
-            gameState.players[1].score = calculateScore(gameState.players[1].team);
-            gameState.players[2].score = calculateScore(gameState.players[2].team);
-            
-            let message = `Game Over! Final Scores: Player 1 (${gameState.players[1].score}) vs Player 2 (${gameState.players[2].score}). `;
-            if (gameState.players[1].score > gameState.players[2].score) {
-                message += "Player 1 wins and establishes the strongest crew!";
-            } else if (gameState.players[2].score > gameState.players[1].score) {
-                message += "Player 2 wins and establishes the strongest crew!";
-            } else {
-                message += "It's a tie! Both crews are equally powerful!";
-            }
-            document.getElementById('game-status').textContent = message;
-            document.getElementById('new-game-button').classList.remove('hidden');
+           
+            // Calculate final scores
+            const p1Result = calculateScore(gameState.players[1].team);
+            const p2Result = calculateScore(gameState.players[2].team);
+
+            gameState.players[1].score = p1Result.score;
+            gameState.players[1].scoreBreakdown = p1Result.breakdown;
+            gameState.players[2].score = p2Result.score;
+            gameState.players[2].scoreBreakdown = p2Result.breakdown;
+           
+            renderEndGame();
         }
     }
-
+   
     // --- UI Rendering ---
 
     /**
-     * Renders the current state of the game.
+     * Renders the current state of the game (Drafting or Game Over).
      */
     function renderGame() {
-        // Status Update
-        if (!gameState.gameEnded) {
-            const playerState = gameState.cardDrawn ? 'Place the Card or Skip it.' : 'Click "Draw Card" to start your turn.';
-            document.getElementById('game-status').textContent = 
-                `Turn: ${gameState.totalTurns + 1}. It is Player ${gameState.currentPlayer}'s turn. ${playerState}`;
+        if (gameState.gameEnded) {
+            renderEndGame();
+            return;
         }
-        document.getElementById('deck-count').textContent = gameState.deck.length;
+
+        // Drafting Status Update
+        const playerState = gameState.cardDrawn ? 'Place the Card or Skip it.' : 'Click "Draw Card" to start your turn.';
+        document.getElementById('game-status').textContent =
+            `Turn: ${gameState.totalTurns + 1}. It is Player ${gameState.currentPlayer}'s turn. ${playerState}`;
 
         renderPlayerHighlights();
         renderCardPool();
-        renderPlayerBoards();
+        // Pass false to ensure stats are hidden during draft
+        renderPlayerBoards(false);
         renderControls();
     }
-    
+   
+    /**
+     * Renders the Final Scoreboard and analysis.
+     */
+    function renderEndGame() {
+        // Determine Winner and Set Announcement
+        let announcement = "";
+        let winColor = "";
+       
+        if (gameState.players[1].score > gameState.players[2].score) {
+            announcement = "🏴‍☠️ PLAYER 1 WINS! The One Piece is Yours! 👑";
+            winColor = "text-yellow-400";
+        } else if (gameState.players[2].score > gameState.players[1].score) {
+            announcement = "🏴‍☠️ PLAYER 2 WINS! The One Piece is Yours! 👑";
+            winColor = "text-yellow-400";
+        } else {
+            announcement = "⚔️ A TIE! Both Crews Are Equally Mighty! ⚓";
+            winColor = "text-cyan-400";
+        }
+       
+        document.getElementById('game-status').innerHTML = `<span class="title-font text-3xl font-bold ${winColor}">${announcement}</span>`;
+
+        // Render Scoreboard HTML
+        const controlsArea = document.getElementById('controls-area');
+        controlsArea.innerHTML = `
+            <h3 class="text-3xl font-bold text-center mb-6 text-red-500 title-font">FINAL SCOREBOARD</h3>
+           
+            <div class="flex flex-col md:flex-row justify-around gap-6 mb-8">
+                ${[1, 2].map(id => renderFinalScoreCard(id)).join('')}
+            </div>
+
+            <div class="flex justify-center">
+                <button id="new-game-button" onclick="initGame()" class="button-secondary text-white py-3 px-6 rounded-lg font-bold uppercase shadow-md hover:bg-green-600 transition">
+                    Start New Game
+                </button>
+            </div>
+           
+            <h4 class="text-2xl font-bold mt-8 mb-4 text-cyan-300">Crew Breakdown & Stats Reveal</h4>
+            <div class="space-y-6">
+                ${[1, 2].map(id => renderDetailedCrewAnalysis(id)).join('')}
+            </div>
+        `;
+       
+        // Final board rendering with stats revealed (true)
+        renderPlayerBoards(true);
+    }
+
+    /**
+     * Renders a detailed analysis for a player's crew at the end of the game.
+     */
+    function renderDetailedCrewAnalysis(playerId) {
+        const player = gameState.players[playerId];
+       
+        const crewCards = player.team.map(slot => {
+            const card = slot.card;
+            // Guard against empty slots if logic somehow allowed it, though it shouldn't
+            if (!card) return '';
+
+            const isSynergistic = card.role_affinity.includes(slot.role);
+            const synergyText = isSynergistic ? 'Synergy: +50 Score' : 'No Synergy';
+            const synergyColor = isSynergistic ? 'text-green-400' : 'text-red-400';
+           
+            return `
+                <div class="bg-gray-700 p-3 rounded-lg flex items-center shadow-lg">
+                    <img src="${card.img_url}" class="w-10 h-14 rounded-md mr-3" onerror="this.onerror=null; this.src='https://placehold.co/40x56/0d2847/ccc?text=C';">
+                    <div class="flex-grow">
+                        <p class="font-bold text-yellow-300">${card.name} (${slot.role})</p>
+                        <p class="text-xs ${synergyColor}">${synergyText}</p>
+                    </div>
+                    <div class="text-right text-sm">
+                        <p>⚔️ ${card.stats.Attack} | 🛡️ ${card.stats.Defense} | 🧪 ${card.stats.Healing}</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+       
+        return `
+            <div class="bg-gray-700/50 p-4 rounded-xl border border-cyan-500 shadow-2xl">
+                <h5 class="text-xl font-bold mb-3 text-cyan-300">Player ${playerId} Crew Analysis</h5>
+                <div class="space-y-2">
+                    ${crewCards}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Renders the final score card for the scoreboard.
+     */
+    function renderFinalScoreCard(playerId) {
+        const player = gameState.players[playerId];
+        const breakdown = player.scoreBreakdown;
+       
+        const cardTitle = playerId === 1 ? 'Straw Hat Crew' : 'Pirate Alliance';
+
+        return `
+            <div class="w-full md:w-1/2 p-4 bg-gray-900 rounded-xl shadow-2xl border border-yellow-500">
+                <h4 class="text-2xl font-bold text-center mb-3 text-yellow-500">${cardTitle} (P${playerId})</h4>
+                <div class="text-center mb-4">
+                    <p class="text-5xl font-extrabold text-white title-font">${player.score}</p>
+                    <p class="text-sm text-gray-400">Total Power Score</p>
+                </div>
+                <div class="text-sm space-y-1 bg-gray-800 p-3 rounded-lg">
+                    <p class="flex justify-between"><span>Base Stats Sum:</span> <span class="text-green-300 font-semibold">${breakdown.baseStatScore}</span></p>
+                    <p class="flex justify-between"><span>Role Synergy Bonus (50 pts/card):</span> <span class="text-green-300 font-semibold">${breakdown.synergyBonus}</span></p>
+                    <p class="flex justify-between"><span>Captain Attack for Bonus:</span> <span class="font-semibold">${breakdown.captainAttack}</span></p>
+                    <p class="flex justify-between border-t border-gray-700 pt-1"><span>Captain Bonus (50% of Atk):</span> <span class="text-green-300 font-semibold">${breakdown.captainBonus}</span></p>
+                    <p class="flex justify-between border-t border-yellow-600 pt-2 text-lg font-bold text-yellow-300"><span>Final Score:</span> <span>${breakdown.totalScore}</span></p>
+                </div>
+            </div>
+        `;
+    }
+
     /**
      * Highlights the current player's board.
      */
@@ -359,17 +472,35 @@
     }
 
     /**
-     * Renders the single drawn card.
+     * Renders the single drawn card during the draft phase.
      */
     function renderCardPool() {
-        const poolEl = document.getElementById('card-pool');
-        poolEl.innerHTML = '';
-        
+        const poolEl = document.getElementById('controls-area');
+       
+        if (gameState.gameEnded) return; // Handled by renderEndGame
+
+        // This structure is rebuilt on every renderGame call when not ended
+        poolEl.innerHTML = `
+            <h3 class="text-2xl font-semibold text-center mb-4 text-cyan-300">Drafting Pool (<span id="deck-count">${gameState.deck.length}</span> Cards Left)</h3>
+            <div id="card-pool-content" class="flex justify-center gap-4 mb-6 min-h-48">
+                <!-- Card will be injected here -->
+            </div>
+            <div id="action-buttons" class="flex justify-center gap-4 flex-wrap">
+                <button id="draw-button" onclick="drawCard()" class="button-secondary text-white py-3 px-6 rounded-lg font-bold uppercase disabled:opacity-50 disabled:shadow-none hover:bg-green-600 transition">
+                    Draw Card
+                </button>
+                <button id="skip-button" onclick="skipTurn()" class="button-primary text-white py-3 px-6 rounded-lg font-bold uppercase disabled:opacity-50 disabled:shadow-none hover:bg-red-600 transition">
+                    Skip Card (<span id="player-skip-status">${gameState.players[gameState.currentPlayer].skipped ? '0' : '1'}</span> Left)
+                </button>
+            </div>
+        `;
+
+        const cardPoolContentEl = document.getElementById('card-pool-content');
         if (gameState.cardPool.length === 0) {
-            poolEl.innerHTML = `
+            cardPoolContentEl.innerHTML = `
                 <div class="text-center p-4 border border-gray-600 rounded-lg w-full sm:w-40 h-48 flex items-center justify-center">
                     <p class="text-sm text-gray-400 font-semibold">
-                        ${gameState.gameEnded ? 'Draft Complete' : 'Card Pool Empty'}
+                        Waiting for Draw
                     </p>
                 </div>`;
             return;
@@ -378,45 +509,52 @@
         const card = gameState.cardPool[0];
         const affinityText = card.role_affinity.join(', ');
 
+        // STATS ARE INTENTIONALLY HIDDEN HERE, as requested by the user
         const cardHtml = `
             <div class="card card-drawn w-full sm:w-40 p-3 rounded-lg shadow-lg">
-                <img src="${card.img_url}" alt="${card.name}" class="w-full h-auto rounded-md mb-2" onerror="this.onerror=null; this.src='https://placehold.co/100x140/0d2847/ccc?text=Card';" >
+                <img src="${card.img_url}" alt="${card.name}" class="w-full h-auto rounded-md mb-2" onerror="this.onerror=null; this.src='https://placehold.co/100x140/0d2847/ccc?text=Card';">
                 <h4 class="text-lg font-bold truncate text-yellow-300">${card.name}</h4>
                 <p class="text-xs mb-1">Affinity: <span class="text-cyan-400">${affinityText}</span></p>
-                <div class="text-xs space-y-0.5 text-gray-300">
-                    <p>⚔️ Atk: ${card.stats.Attack}</p>
-                    <p>🛡️ Def: ${card.stats.Defense}</p>
-                    <p>🧪 Heal: ${card.stats.Healing}</p>
-                </div>
+                <p class="text-xs italic text-gray-400 mt-2">Stats Hidden During Draft</p>
             </div>
         `;
-        poolEl.innerHTML += cardHtml;
+        cardPoolContentEl.innerHTML += cardHtml;
     }
 
     /**
      * Renders both player crew boards.
+     * @param {boolean} showStats If true, reveal character stats on the board (used only at End Game).
      */
-    function renderPlayerBoards() {
+    function renderPlayerBoards(showStats = false) {
         for (let playerId of [1, 2]) {
             const crewEl = document.getElementById(`crew-${playerId}`);
             crewEl.innerHTML = '';
-            
+           
             gameState.players[playerId].team.forEach((slot, index) => {
                 const isCurrentPlayer = gameState.currentPlayer === playerId;
-                // Slot is active if it's the current player, a card is drawn, and the slot is empty
-                const isReadyToPlace = isCurrentPlayer && gameState.cardDrawn && !slot.card; 
-                
+                const isReadyToPlace = isCurrentPlayer && gameState.cardDrawn && !slot.card;
+               
                 const card = slot.card;
                 let cardContent = '';
-                
+               
                 if (card) {
                     const isSynergistic = card.role_affinity.includes(slot.role);
+                    const synergyIndicator = isSynergistic ? 'Synergy Bonus!' : 'Standard Role';
+                    const synergyColor = isSynergistic ? 'text-green-400 font-semibold' : 'text-red-400';
+                   
+                    // Stats are only displayed if showStats is true (i.e., end game)
+                    const statsDisplay = showStats ?
+                        `<div class="text-xs space-y-0.5 text-gray-300 mt-1">
+                            <p>⚔️ Atk: ${card.stats.Attack}</p>
+                            <p>🛡️ Def: ${card.stats.Defense}</p>
+                            <p>🧪 Heal: ${card.stats.Healing}</p>
+                         </div>` : '';
+
                     cardContent = `
                         <img src="${card.img_url}" alt="${card.name}" class="w-full h-auto rounded-md mb-2" onerror="this.onerror=null; this.src='https://placehold.co/100x140/0d2847/ccc?text=Card';">
                         <h4 class="text-sm font-bold truncate text-yellow-300">${card.name}</h4>
-                        <p class="text-xs ${isSynergistic ? 'text-green-400 font-semibold' : 'text-red-400'}">
-                            ${isSynergistic ? 'Synergy Bonus!' : 'Standard Role'}
-                        </p>
+                        <p class="text-xs ${synergyColor}">${synergyIndicator}</p>
+                        ${statsDisplay}
                     `;
                 } else {
                     cardContent = `
@@ -439,42 +577,36 @@
                 `;
             });
 
-            // Display Score
+            // Update board score/count display
             const crewCount = gameState.players[playerId].team.filter(s => s.card !== null).length;
             const scoreDisplayEl = document.getElementById(`player-${playerId}-board`).querySelector('h2');
-            
-            if (crewCount === 6) {
-                 gameState.players[playerId].score = calculateScore(gameState.players[playerId].team);
+           
+            if (gameState.gameEnded) {
                  scoreDisplayEl.textContent = `Player ${playerId}: Final Score ${gameState.players[playerId].score}`;
-            } else if (!scoreDisplayEl.textContent.includes('Final Score')) {
+            } else {
                  scoreDisplayEl.textContent = `Player ${playerId}: Crew (${crewCount}/6)`;
             }
         }
     }
 
     /**
-     * Renders the control button states.
+     * Renders the control button states during the draft.
      */
     function renderControls() {
+        if (gameState.gameEnded) return;
+
         const drawBtn = document.getElementById('draw-button');
         const skipBtn = document.getElementById('skip-button');
         const player = gameState.players[gameState.currentPlayer];
-        
-        document.getElementById('player-skip-status').textContent = player.skipped ? '0' : '1';
-        
-        if (gameState.gameEnded) {
-            drawBtn.disabled = true;
-            skipBtn.disabled = true;
-            return;
-        }
-
+       
         // Draw Button Logic: Enabled only if no card is currently drawn and deck is not empty
         drawBtn.disabled = gameState.cardDrawn || gameState.deck.length === 0;
 
-        // Skip Button Logic: Enabled only if a card is drawn AND player hasn't skipped AND deck is not empty
+        // Skip Button Logic: Enabled only if a card is drawn AND player hasn't skipped
         skipBtn.disabled = !gameState.cardDrawn || player.skipped;
+       
+        // Prevent skipping the last card if deck is empty
         if (gameState.deck.length === 0 && gameState.cardDrawn) {
-            // Cannot skip if deck is empty (must take the last card)
             skipBtn.disabled = true;
         }
     }
@@ -483,27 +615,30 @@
 
     /**
      * Places the drawn card into a player's crew slot.
-     * @param {number} playerId The ID of the player (1 or 2).
-     * @param {number} slotIndex The index of the slot in the player's team array.
      */
     function placeCard(playerId, slotIndex) {
         if (gameState.gameEnded || playerId !== gameState.currentPlayer) return;
-
-        // Placement can only happen if a card is currently drawn
         if (!gameState.cardDrawn || gameState.cardPool.length === 0) return;
 
         const player = gameState.players[playerId];
         const slot = player.team[slotIndex];
 
-        if (slot.card) return; // Slot already filled
-        
-        // Place the drawn card (the only one in the pool)
-        slot.card = gameState.cardPool[0];
+        // Captain slot must be filled first
+        if (slot.role === 'Captain' && player.team.filter(s => s.role === 'Captain' && s.card !== null).length === 0) {
+            // Proceed
+        } else if (slot.role === 'Captain' && player.team.filter(s => s.role === 'Captain' && s.card !== null).length > 0) {
+            // Already has a Captain, cannot place here again
+             return;
+        } else if (!slot.card) {
+            // Proceed for non-Captain or subsequent Captain placements (if multiple roles allowed)
+        } else {
+            return; // Slot is full
+        }
 
-        // Clear the card pool and end turn
+        slot.card = gameState.cardPool[0];
         gameState.cardPool = [];
-        
-        endTurn(true); // Placed card, so move to next player
+       
+        endTurn(true);
     }
 
     /**
@@ -511,23 +646,18 @@
      */
     function skipTurn() {
         const player = gameState.players[gameState.currentPlayer];
-        // Cannot skip if game ended, no card drawn, or already skipped
-        if (gameState.gameEnded || !gameState.cardDrawn || player.skipped) return;
-        
-        // Cannot skip the last card if deck is empty
-        if (gameState.deck.length === 0) return; 
-
+        if (gameState.gameEnded || !gameState.cardDrawn || player.skipped || gameState.deck.length === 0) return;
+       
         // 1. Use skip allowance
         player.skipped = true;
 
-        // 2. Discard current card and reset the flag (THE FIX)
+        // 2. Discard current card and reset the flag (Allows redrawing)
         gameState.cardPool = [];
-        gameState.cardDrawn = false; 
-        
+        gameState.cardDrawn = false;
+       
         // 3. Draw a new card immediately (stay on the same player's turn)
-        // drawCard(false) is called to prevent double rendering.
-        drawCard(false); 
-        
+        drawCard(false);
+       
         // 4. A skip is an action, so increment global turn count
         gameState.totalTurns++;
 
@@ -536,13 +666,12 @@
 
     /**
      * Finalizes the turn and switches to the next player if placement occurred.
-     * @param {boolean} placementOccurred True if a card was successfully placed.
      */
     function endTurn(placementOccurred) {
         if (placementOccurred) {
             gameState.totalTurns++;
             gameState.cardDrawn = false;
-            
+           
             // Switch player
             gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
         }
@@ -557,4 +686,3 @@
 </script>
 </body>
 </html>
-
