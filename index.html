@@ -14,6 +14,7 @@
         }
         .title-font {
             font-family: 'Pirata One', cursive;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         .card {
             cursor: pointer;
@@ -22,8 +23,8 @@
             background-color: #173f67; /* Darker Blue */
         }
         .card:hover {
-            transform: translateY(-5px) scale(1.03);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.6);
         }
         .card-selected {
             border-color: #ffd700; /* Gold */
@@ -46,6 +47,10 @@
             from { border-color: #ffaa00; }
             to { border-color: #ffaa00; }
         }
+        .player-highlight {
+            border: 4px solid #ffaa00;
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
+        }
         .button-primary {
             background-color: #e53e3e; /* Red for action */
             box-shadow: 0 4px #9b2c2c;
@@ -54,6 +59,15 @@
         .button-primary:active {
             transform: translateY(2px);
             box-shadow: 0 2px #9b2c2c;
+        }
+        .button-secondary {
+            background-color: #38a169; /* Green for draw */
+            box-shadow: 0 4px #2f855a;
+            transition: background-color 0.1s, transform 0.1s, box-shadow 0.1s;
+        }
+        .button-secondary:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #2f855a;
         }
     </style>
 </head>
@@ -75,7 +89,7 @@
         <!-- Player Boards (Flex container for responsive layout) -->
         <div class="flex flex-col lg:flex-row gap-8 mb-8">
             <!-- Player 1 Board -->
-            <div id="player-1-board" class="lg:w-1/2 p-4 rounded-xl shadow-2xl" style="background-color: #123456;">
+            <div id="player-1-board" class="lg:w-1/2 p-4 rounded-xl shadow-2xl transition duration-300" style="background-color: #123456;">
                 <h2 class="title-font text-3xl mb-4 text-center text-yellow-300">Player 1: Straw Hat Crew</h2>
                 <div id="crew-1" class="grid grid-cols-2 md:grid-cols-3 gap-3">
                     <!-- Slots will be injected here -->
@@ -83,7 +97,7 @@
             </div>
 
             <!-- Player 2 Board -->
-            <div id="player-2-board" class="lg:w-1/2 p-4 rounded-xl shadow-2xl" style="background-color: #123456;">
+            <div id="player-2-board" class="lg:w-1/2 p-4 rounded-xl shadow-2xl transition duration-300" style="background-color: #123456;">
                 <h2 class="title-font text-3xl mb-4 text-center text-yellow-300">Player 2: Pirate Alliance</h2>
                 <div id="crew-2" class="grid grid-cols-2 md:grid-cols-3 gap-3">
                     <!-- Slots will be injected here -->
@@ -95,15 +109,21 @@
         <div id="controls-area" class="bg-gray-800/70 p-6 rounded-xl shadow-inner border border-gray-700">
             <h3 class="text-2xl font-semibold text-center mb-4 text-cyan-300">Drafting Pool (<span id="deck-count">X</span> Cards Left)</h3>
             
-            <!-- Card Pool -->
-            <div id="card-pool" class="flex flex-col sm:flex-row justify-center gap-4 mb-6">
-                <!-- Cards will be injected here -->
+            <!-- Card Pool (Only one card shown) -->
+            <div id="card-pool" class="flex justify-center gap-4 mb-6 min-h-48">
+                <!-- Card will be injected here -->
             </div>
 
             <!-- Actions -->
-            <div class="flex justify-center gap-4">
+            <div class="flex justify-center gap-4 flex-wrap">
+                <button id="draw-button" onclick="drawCard()" class="button-secondary text-white py-3 px-6 rounded-lg font-bold uppercase disabled:opacity-50 disabled:shadow-none hover:bg-green-600 transition">
+                    Draw Card
+                </button>
                 <button id="skip-button" onclick="skipTurn()" class="button-primary text-white py-3 px-6 rounded-lg font-bold uppercase disabled:opacity-50 disabled:shadow-none hover:bg-red-600 transition">
                     Skip Turn (<span id="player-skip-status">1</span> Left)
+                </button>
+                <button id="new-game-button" onclick="initGame()" class="bg-gray-500 text-white py-3 px-6 rounded-lg font-bold uppercase shadow-md disabled:hidden">
+                    New Game
                 </button>
             </div>
         </div>
@@ -121,12 +141,13 @@
         { name: 'Support', count: 2 }
     ].flatMap(slot => Array(slot.count).fill(slot.name));
 
+    // Expanded Character Roster (20 Cards)
     const CARDS = [
         { id: 'luffy', name: 'Monkey D. Luffy', role_affinity: ['Captain', 'Support'], stats: { Attack: 90, Defense: 60, Healing: 10 }, img_url: 'https://placehold.co/100x140/f33/000?text=L' },
         { id: 'zoro', name: 'Roronoa Zoro', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 85, Defense: 70, Healing: 5 }, img_url: 'https://placehold.co/100x140/3c3/000?text=Z' },
         { id: 'nami', name: 'Nami', role_affinity: ['Support'], stats: { Attack: 40, Defense: 20, Healing: 50 }, img_url: 'https://placehold.co/100x140/fa5/000?text=N' },
         { id: 'sanji', name: 'Vinsmoke Sanji', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 75, Defense: 50, Healing: 25 }, img_url: 'https://placehold.co/100x140/55a/000?text=S' },
-        { id: 'chopper', name: 'Tony Tony Chopper', role_affinity: ['Healer', 'Support'], stats: { Attack: 30, Defense: 40, Healing: 80 }, img_url: 'https://placehold.co/100x140/c3c/000?text=C' },
+        { id: 'chopper', name: 'T.T. Chopper', role_affinity: ['Healer', 'Support'], stats: { Attack: 30, Defense: 40, Healing: 80 }, img_url: 'https://placehold.co/100x140/c3c/000?text=C' },
         { id: 'robin', name: 'Nico Robin', role_affinity: ['Support'], stats: { Attack: 50, Defense: 30, Healing: 30 }, img_url: 'https://placehold.co/100x140/5af/000?text=R' },
         { id: 'franky', name: 'Franky', role_affinity: ['Tank', 'Support'], stats: { Attack: 60, Defense: 80, Healing: 0 }, img_url: 'https://placehold.co/100x140/888/000?text=F' },
         { id: 'jinbe', name: 'Jinbe', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 70, Defense: 95, Healing: 5 }, img_url: 'https://placehold.co/100x140/007/FFF?text=J' },
@@ -134,20 +155,29 @@
         { id: 'ace', name: 'Portgas D. Ace', role_affinity: ['Captain', 'Vice Captain'], stats: { Attack: 95, Defense: 50, Healing: 5 }, img_url: 'https://placehold.co/100x140/f00/000?text=A' },
         { id: 'law', name: 'Trafalgar Law', role_affinity: ['Healer', 'Captain'], stats: { Attack: 80, Defense: 40, Healing: 60 }, img_url: 'https://placehold.co/100x140/04a/FFF?text=T' },
         { id: 'shanks', name: 'Shanks', role_affinity: ['Captain'], stats: { Attack: 100, Defense: 70, Healing: 0 }, img_url: 'https://placehold.co/100x140/aa0/000?text=S' },
+        { id: 'hancock', name: 'Boa Hancock', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 85, Defense: 40, Healing: 15 }, img_url: 'https://placehold.co/100x140/f6a/000?text=B' },
+        { id: 'doffy', name: 'Doflamingo', role_affinity: ['Captain'], stats: { Attack: 92, Defense: 55, Healing: 3 }, img_url: 'https://placehold.co/100x140/90c/FFF?text=D' },
+        { id: 'mihawk', name: 'Dracule Mihawk', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 98, Defense: 75, Healing: 0 }, img_url: 'https://placehold.co/100x140/000/FFF?text=M' },
+        { id: 'kuma', name: 'Bartholomew Kuma', role_affinity: ['Tank', 'Support'], stats: { Attack: 65, Defense: 100, Healing: 0 }, img_url: 'https://placehold.co/100x140/ccc/000?text=K' },
+        { id: 'perona', name: 'Perona', role_affinity: ['Support'], stats: { Attack: 35, Defense: 25, Healing: 45 }, img_url: 'https://placehold.co/100x140/f9f/000?text=P' },
+        { id: 'ivankov', name: 'Emporio Ivankov', role_affinity: ['Healer', 'Support'], stats: { Attack: 50, Defense: 30, Healing: 70 }, img_url: 'https://placehold.co/100x140/a0a/FFF?text=I' },
+        { id: 'smoker', name: 'Smoker', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 70, Defense: 88, Healing: 0 }, img_url: 'https://placehold.co/100x140/777/FFF?text=S' },
+        { id: 'koby', name: 'Koby', role_affinity: ['Support'], stats: { Attack: 65, Defense: 45, Healing: 10 }, img_url: 'https://placehold.co/100x140/0af/000?text=K' },
     ];
 
     // --- Game State ---
     let gameState = {
         deck: [],
-        cardPool: [],
+        cardPool: [], // Holds the single drawn card
         currentPlayer: 1,
         players: {
-            1: { team: {}, skipped: false, score: 0 },
-            2: { team: {}, skipped: false, score: 0 }
+            1: { team: [], skipped: false, score: 0 },
+            2: { team: [], skipped: false, score: 0 }
         },
         selectedCard: null,
         totalTurns: 0,
-        gameEnded: false
+        gameEnded: false,
+        cardDrawn: false, // New state to enforce Draw -> Place sequence
     };
 
     // --- Utility Functions ---
@@ -180,21 +210,30 @@
         gameState.players[2].skipped = false;
         gameState.gameEnded = false;
         gameState.totalTurns = 0;
+        gameState.cardPool = [];
+        gameState.selectedCard = null;
+        gameState.cardDrawn = false;
         
-        drawCardPool();
+        document.getElementById('new-game-button').classList.add('hidden');
+        
         renderGame();
     }
 
     /**
-     * Draws 3 cards for the pool, or fewer if the deck is low.
+     * Draws one card for the player to consider.
      */
-    function drawCardPool() {
-        const poolSize = Math.min(3, gameState.deck.length);
-        gameState.cardPool = [];
-        for (let i = 0; i < poolSize; i++) {
-            gameState.cardPool.push(gameState.deck.pop());
+    function drawCard() {
+        if (gameState.gameEnded || gameState.cardDrawn) return;
+        if (gameState.deck.length === 0) {
+            document.getElementById('game-status').textContent = "Deck is empty! You must use your skip or wait for the opponent to finish.";
+            return;
         }
-        gameState.selectedCard = null;
+
+        // Draw one card
+        gameState.cardPool = [gameState.deck.pop()];
+        gameState.cardDrawn = true;
+        
+        renderGame();
     }
 
     /**
@@ -228,7 +267,8 @@
 
         // 3. Captain Bonus (Multiplicative)
         if (captainAttack > 0) {
-            score += Math.round(captainAttack * 1.5);
+            // Apply 1.5 multiplier to the Captain's Attack stat and add the bonus amount to the score
+            score += Math.round(captainAttack * 0.5); 
         }
 
         return score;
@@ -255,9 +295,7 @@
                 message += "It's a tie! Both crews are equally powerful!";
             }
             document.getElementById('game-status').textContent = message;
-            // Disable skip button
-            document.getElementById('skip-button').disabled = true;
-            console.log(message);
+            document.getElementById('new-game-button').classList.remove('hidden');
         }
     }
 
@@ -267,48 +305,65 @@
      * Renders the current state of the game.
      */
     function renderGame() {
-        if (gameState.gameEnded) return;
-
         // Status Update
-        document.getElementById('game-status').textContent = 
-            `Turn: ${gameState.totalTurns + 1}. It is Player ${gameState.currentPlayer}'s turn.`;
+        if (!gameState.gameEnded) {
+            document.getElementById('game-status').textContent = 
+                `Turn: ${gameState.totalTurns + 1}. It is Player ${gameState.currentPlayer}'s turn.`;
+        }
         document.getElementById('deck-count').textContent = gameState.deck.length;
 
+        renderPlayerHighlights();
         renderCardPool();
         renderPlayerBoards();
         renderControls();
     }
     
     /**
-     * Renders the 3-card drafting pool.
+     * Highlights the current player's board.
+     */
+    function renderPlayerHighlights() {
+        document.getElementById('player-1-board').classList.remove('player-highlight');
+        document.getElementById('player-2-board').classList.remove('player-highlight');
+        if (!gameState.gameEnded) {
+            document.getElementById(`player-${gameState.currentPlayer}-board`).classList.add('player-highlight');
+        }
+    }
+
+    /**
+     * Renders the single drawn card.
      */
     function renderCardPool() {
         const poolEl = document.getElementById('card-pool');
         poolEl.innerHTML = '';
         
-        gameState.cardPool.forEach((card, index) => {
-            const isSelected = gameState.selectedCard && gameState.selectedCard.card.id === card.id;
-            const affinityText = card.role_affinity.join(', ');
-
-            const cardHtml = `
-                <div class="card ${isSelected ? 'card-selected' : ''} w-full sm:w-40 p-3 rounded-lg shadow-lg" 
-                     onclick="selectCard(${index}, this)">
-                    <img src="${card.img_url}" alt="${card.name}" class="w-full h-auto rounded-md mb-2">
-                    <h4 class="text-lg font-bold truncate text-yellow-300">${card.name}</h4>
-                    <p class="text-xs mb-1">Affinity: <span class="text-cyan-400">${affinityText}</span></p>
-                    <div class="text-xs space-y-0.5 text-gray-300">
-                        <p>⚔️ Atk: ${card.stats.Attack}</p>
-                        <p>🛡️ Def: ${card.stats.Defense}</p>
-                        <p>🧪 Heal: ${card.stats.Healing}</p>
-                    </div>
-                </div>
-            `;
-            poolEl.innerHTML += cardHtml;
-        });
-
-        if (gameState.cardPool.length === 0 && !gameState.gameEnded) {
-            poolEl.innerHTML = '<p class="text-xl text-red-400 font-semibold">Deck Empty! Waiting for players to fill remaining slots.</p>';
+        if (gameState.cardPool.length === 0) {
+            poolEl.innerHTML = `
+                <div class="text-center p-4 border border-gray-600 rounded-lg w-full sm:w-40 h-48 flex items-center justify-center">
+                    <p class="text-sm text-gray-400 font-semibold">
+                        ${gameState.gameEnded ? 'Draft Complete' : 'Click "Draw Card"'}
+                    </p>
+                </div>`;
+            return;
         }
+
+        const card = gameState.cardPool[0];
+        const isSelected = gameState.selectedCard && gameState.selectedCard.card.id === card.id;
+        const affinityText = card.role_affinity.join(', ');
+
+        const cardHtml = `
+            <div class="card ${isSelected ? 'card-selected' : ''} w-full sm:w-40 p-3 rounded-lg shadow-lg" 
+                 onclick="selectCard(0, this)">
+                <img src="${card.img_url}" alt="${card.name}" class="w-full h-auto rounded-md mb-2">
+                <h4 class="text-lg font-bold truncate text-yellow-300">${card.name}</h4>
+                <p class="text-xs mb-1">Affinity: <span class="text-cyan-400">${affinityText}</span></p>
+                <div class="text-xs space-y-0.5 text-gray-300">
+                    <p>⚔️ Atk: ${card.stats.Attack}</p>
+                    <p>🛡️ Def: ${card.stats.Defense}</p>
+                    <p>🧪 Heal: ${card.stats.Healing}</p>
+                </div>
+            </div>
+        `;
+        poolEl.innerHTML += cardHtml;
     }
 
     /**
@@ -358,54 +413,73 @@
 
             // Display Score if filled
             const crewCount = gameState.players[playerId].team.filter(s => s.card !== null).length;
+            const scoreDisplayEl = document.getElementById(`player-${playerId}-board`).querySelector('h2');
+            
             if (crewCount === 6) {
                  gameState.players[playerId].score = calculateScore(gameState.players[playerId].team);
-                 document.getElementById(`player-${playerId}-board`).querySelector('h2').textContent = 
-                    `Player ${playerId}: Final Score ${gameState.players[playerId].score}`;
+                 scoreDisplayEl.textContent = `Player ${playerId}: Final Score ${gameState.players[playerId].score}`;
+            } else if (scoreDisplayEl.textContent.includes('Final Score')) {
+                // Keep displaying final score if already calculated
             } else {
-                 document.getElementById(`player-${playerId}-board`).querySelector('h2').textContent = 
-                    `Player ${playerId}: Straw Hat Crew (${crewCount}/6)`;
+                 scoreDisplayEl.textContent = `Player ${playerId}: Crew (${crewCount}/6)`;
             }
         }
     }
 
     /**
-     * Renders the Skip button state.
+     * Renders the control button states.
      */
     function renderControls() {
+        const drawBtn = document.getElementById('draw-button');
         const skipBtn = document.getElementById('skip-button');
         const player = gameState.players[gameState.currentPlayer];
         
         document.getElementById('player-skip-status').textContent = player.skipped ? '0' : '1';
         
-        if (player.skipped || gameState.cardPool.length === 0) {
+        if (gameState.gameEnded) {
+            drawBtn.disabled = true;
             skipBtn.disabled = true;
-        } else {
-            skipBtn.disabled = false;
+            return;
+        }
+
+        // Draw Button Logic
+        drawBtn.disabled = gameState.cardDrawn || gameState.deck.length === 0;
+
+        // Skip Button Logic
+        skipBtn.disabled = player.skipped || gameState.cardPool.length === 0 || gameState.deck.length === 0;
+        
+        // If card is drawn, you must place it or skip it (if available)
+        if (gameState.cardDrawn) {
+            drawBtn.disabled = true;
+        }
+        
+        // If deck is empty, you can only skip if you haven't yet, otherwise controls are disabled
+        if (gameState.deck.length === 0) {
+            drawBtn.disabled = true;
         }
     }
 
     // --- Game Actions ---
 
     /**
-     * Selects a card from the pool to be placed.
-     * @param {number} poolIndex Index in the card pool array.
+     * Selects the single drawn card.
+     * @param {number} poolIndex Index in the card pool array (always 0 here).
      * @param {HTMLElement} element The clicked card element.
      */
     function selectCard(poolIndex, element) {
-        if (gameState.gameEnded || gameState.cardPool.length === 0) return;
+        if (gameState.gameEnded || !gameState.cardDrawn) return;
 
         // Deselect any previously selected card UI
         document.querySelectorAll('.card').forEach(c => c.classList.remove('card-selected'));
 
-        if (gameState.selectedCard && gameState.selectedCard.index === poolIndex) {
+        if (gameState.selectedCard && gameState.selectedCard.card.id === gameState.cardPool[poolIndex].id) {
             // Deselect
             gameState.selectedCard = null;
         } else {
             // Select new card
             gameState.selectedCard = {
                 card: gameState.cardPool[poolIndex],
-                index: poolIndex
+                index: poolIndex // always 0
             };
             element.classList.add('card-selected');
         }
@@ -422,7 +496,12 @@
         if (gameState.gameEnded) return;
         if (playerId !== gameState.currentPlayer) return;
         if (!gameState.selectedCard) {
-             console.log("No card selected.");
+            console.log("No card selected.");
+            // Notify user visually that they must select the card
+            if (gameState.cardPool.length > 0) {
+                document.getElementById('game-status').textContent = `Player ${playerId}: Select the drawn card first!`;
+                return;
+            }
             return;
         }
 
@@ -433,12 +512,18 @@
             console.log("Slot already filled.");
             return;
         }
+        
+        // Check if the slot belongs to the current player
+        if (playerId !== gameState.currentPlayer) {
+            document.getElementById('game-status').textContent = `Wait, it is Player ${gameState.currentPlayer}'s turn!`;
+            return;
+        }
 
         // Place the card
         slot.card = gameState.selectedCard.card;
 
-        // Remove the card from the pool
-        gameState.cardPool.splice(gameState.selectedCard.index, 1);
+        // Clear the card pool
+        gameState.cardPool = [];
         
         endTurn();
     }
@@ -447,20 +532,20 @@
      * Uses the player's skip action.
      */
     function skipTurn() {
-        if (gameState.gameEnded) return;
+        if (gameState.gameEnded || !gameState.cardDrawn) return;
         
         const player = gameState.players[gameState.currentPlayer];
         if (player.skipped) {
             console.log("Player has already skipped.");
             return;
         }
+        if (gameState.cardPool.length === 0) return; // Cannot skip if no card is drawn
 
         // Use skip
         player.skipped = true;
 
-        // Discard the current pool and draw new cards
-        // The discarded cards are lost forever (out of the game)
-        drawCardPool();
+        // Discard the current pool (the single card)
+        gameState.cardPool = [];
 
         endTurn();
     }
@@ -471,12 +556,8 @@
     function endTurn() {
         gameState.totalTurns++;
         gameState.selectedCard = null;
+        gameState.cardDrawn = false;
         
-        // If the pool is empty, draw a new one for the next turn
-        if (gameState.cardPool.length === 0) {
-            drawCardPool();
-        }
-
         // Switch player
         gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
 
