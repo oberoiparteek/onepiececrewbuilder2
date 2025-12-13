@@ -1,375 +1,509 @@
+<!--
+  ============================================================
+  COMMUNITY FREE-USE GAME
+  ============================================================
+
+  Author: Parteek Kumar
+  Year: 2025
+
+  LICENSE & USAGE:
+  ----------------
+  This game is free for community use.
+  You are allowed to use, modify, and share the code.
+
+  CONDITIONS:
+  -----------
+  1. This author credit must remain intact.
+  2. Attribution to the original author is required.
+
+  FEEDBACK & SUGGESTIONS:
+  ----------------------
+  Suggestions, improvements, and feedback are welcome on LinkedIn:
+  https://www.linkedin.com/in/parteekkumar/
+
+  DISCLAIMER (IMPORTANT):
+  -----------------------
+  All characters, names, and references used in this game
+  are the property of the One Piece team / respective rights holders.
+
+  This is a fan-made, non-commercial, community game created
+  purely for fun and experimentation.
+  No ownership over One Piece characters is claimed.
+-->
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>One Piece Crew Builder</title>
+
+    <!-- Author & License Metadata -->
+    <meta name="author" content="Parteek Kumar" />
+    <meta name="copyright" content="© 2025 Parteek Kumar" />
+    <meta name="description"
+        content="Community free-use browser game by Parteek Kumar. Fan-made One Piece themed game for fun." />
+    <meta name="license" content="Free to use with attribution. Characters owned by One Piece team." />
+
+    <!-- Open Graph (social sharing) -->
+    <meta property="og:title" content="Community Browser Game" />
+    <meta property="og:description" content="Fan-made community game. Built by Parteek Kumar. Suggestions welcome." />
+    <meta property="og:site_name" content="Parteek Kumar Games" />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pirata+One&display=swap');
-       
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0b1a2b; /* Deep Sea Blue */
+            background-color: #0b1a2b;
+            /* Deep Sea Blue */
         }
+
         .title-font {
             font-family: 'Pirata One', cursive;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
+
         .card {
             transition: transform 0.2s, box-shadow 0.2s;
             border: 3px solid transparent;
-            background-color: #173f67; /* Darker Blue */
+            background-color: #173f67;
+            /* Darker Blue */
         }
+
         .card-drawn {
-            border-color: #ffd700; /* Gold highlight when drawn */
+            border-color: #ffd700;
+            /* Gold highlight when drawn */
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
+
         .slot {
             transition: background-color 0.2s;
             min-height: 12rem;
-            background-color: #0d2847; /* Slot background */
+            background-color: #0d2847;
+            /* Slot background */
             border: 1px dashed #4e73a0;
         }
+
         .slot-active {
             animation: pulse-border 1s infinite alternate;
             cursor: pointer;
         }
+
         .slot-active:hover {
             background-color: #1e4a7a;
         }
+
         @keyframes pulse-border {
-            from { border-color: #ffaa00; }
-            to { border-color: #ffaa00; }
+            from {
+                border-color: #ffaa00;
+            }
+
+            to {
+                border-color: #ffaa00;
+            }
         }
+
         .player-highlight {
             border: 4px solid #ffaa00;
             box-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
         }
+
         .button-primary {
-            background-color: #e53e3e; /* Red for Skip/Action */
+            background-color: #e53e3e;
+            /* Red for Skip/Action */
             box-shadow: 0 4px #9b2c2c;
             transition: background-color 0.1s, transform 0.1s, box-shadow 0.1s;
         }
+
         .button-primary:active {
             transform: translateY(2px);
             box-shadow: 0 2px #9b2c2c;
         }
+
         .button-secondary {
-            background-color: #38a169; /* Green for Draw */
+            background-color: #38a169;
+            /* Green for Draw */
             box-shadow: 0 4px #2f855a;
             transition: background-color 0.1s, transform 0.1s, box-shadow 0.1s;
         }
+
         .button-secondary:active {
             transform: translateY(2px);
             box-shadow: 0 2px #2f855a;
         }
+
+        /* =========================
+            COMMUNITY CREDIT BANNER
+           ========================= */
+        #community-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 8px 10px;
+            font-size: 13px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.75);
+            color: #ffffff;
+            z-index: 9999;
+            animation: softBlink 3s infinite;
+        }
+
+        #community-banner a {
+            color: #4da3ff;
+            text-decoration: underline;
+        }
+
+        @keyframes softBlink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.45;
+            }
+        }
+
+        /* Optional small watermark */
+        #community-watermark {
+            position: fixed;
+            bottom: 6px;
+            right: 10px;
+            font-size: 11px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
     </style>
 </head>
+
 <body>
 
-<div id="app" class="min-h-screen p-4 sm:p-8 text-white">
+    <div id="app" class="min-h-screen p-4 sm:p-8 text-white">
 
-    <!-- Game Title -->
-    <header class="text-center mb-6 sm:mb-10">
-        <h1 class="title-font text-5xl sm:text-7xl font-bold text-yellow-400 drop-shadow-lg mb-2">
-            One Piece Crew Builder
-        </h1>
-        <p id="game-status" class="text-xl sm:text-2xl font-semibold text-gray-300 min-h-8"></p>
-    </header>
+        <!-- Game Title -->
+        <header class="text-center mb-6 sm:mb-10">
+            <h1 class="title-font text-5xl sm:text-7xl font-bold text-yellow-400 drop-shadow-lg mb-2">
+                One Piece Crew Builder
+            </h1>
+            <p id="game-status" class="text-xl sm:text-2xl font-semibold text-gray-300 min-h-8"></p>
+        </header>
 
-    <!-- Main Game Area -->
-    <div class="max-w-7xl mx-auto">
-    
-        <!-- Player Boards (Flex container for responsive layout) -->
-        <div class="flex flex-col lg:flex-row gap-8 mb-8">
-            <!-- Player 1 Board -->
-            <div id="player-1-board" class="lg:w-1/2 p-4 rounded-xl shadow-2xl transition duration-300" style="background-color: #123456;">
-                <h2 class="title-font text-3xl mb-4 text-center text-yellow-300">Player 1: Wild Pirates Crew</h2>
-                <div id="crew-1" class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    <!-- Slots will be injected here -->
+        <div id="community-banner">
+            Community Game by <strong>Parteek Kumar</strong> •
+            <a href="https://www.linkedin.com/in/parteek-kumar/" target="_blank" rel="noopener">
+                Suggestions welcome on LinkedIn
+            </a>
+        </div>
+        <div id="community-watermark">
+            © Parteek Kumar • Fan-made One Piece game
+        </div>
+        <!-- Main Game Area -->
+        <div class="max-w-7xl mx-auto">
+
+            <!-- Player Boards (Flex container for responsive layout) -->
+            <div class="flex flex-col lg:flex-row gap-8 mb-8">
+                <!-- Player 1 Board -->
+                <div id="player-1-board" class="lg:w-1/2 p-4 rounded-xl shadow-2xl transition duration-300"
+                    style="background-color: #123456;">
+                    <h2 class="title-font text-3xl mb-4 text-center text-yellow-300">Player 1: Wild Pirates Crew</h2>
+                    <div id="crew-1" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <!-- Slots will be injected here -->
+                    </div>
+                </div>
+                <!-- Card Pool & Controls / Final Scoreboard -->
+                <div id="controls-area" class="bg-gray-800/70 p-6 rounded-xl shadow-inner border border-gray-700">
+                    <!-- Content will be swapped between Drafting UI and Scoreboard -->
+                </div>
+                <!-- Player 2 Board -->
+                <div id="player-2-board" class="lg:w-1/2 p-4 rounded-xl shadow-2xl transition duration-300"
+                    style="background-color: #123456;">
+                    <h2 class="title-font text-3xl mb-4 text-center text-yellow-300">Player 2: Killer Pirates</h2>
+                    <div id="crew-2" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <!-- Slots will be injected here -->
+                    </div>
                 </div>
             </div>
-            <!-- Card Pool & Controls / Final Scoreboard -->
-            <div id="controls-area" class="bg-gray-800/70 p-6 rounded-xl shadow-inner border border-gray-700">
-                <!-- Content will be swapped between Drafting UI and Scoreboard -->
-            </div>
-            <!-- Player 2 Board -->
-            <div id="player-2-board" class="lg:w-1/2 p-4 rounded-xl shadow-2xl transition duration-300" style="background-color: #123456;">
-                <h2 class="title-font text-3xl mb-4 text-center text-yellow-300">Player 2: Killer Pirates</h2>
-                <div id="crew-2" class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    <!-- Slots will be injected here -->
-                </div>
-            </div>
-        </div>        
+        </div>
+        <div style="left: 10px;">
+            <button onclick="showCredits()" class="border opacity-50 p-1 rounded-md hover:opacity-100">
+                Credits🌐
+            </button> &nbsp;
+            <a href="https://one-piece.com/" target="_blank" rel="noopener" style="font-size: 11px;" class="opacity-50 hover:opacity-100">
+                Official One Piece Website ↗️
+            </a>
+        </div>
     </div>
-</div>
 
-<script>
-    // --- Game Data ---
-    const ROLES = ['Captain', 'Vice Captain', 'Tank', 'Healer', 'Support'];
-    const CREW_SLOTS = [
-        { name: 'Captain', count: 1 },
-        { name: 'Vice Captain', count: 1 },
-        { name: 'Tank', count: 1 },
-        { name: 'Healer', count: 1 },
-        { name: 'Support', count: 2 }
-    ].flatMap(slot => Array(slot.count).fill(slot.name));
+    <script>
+        // --- Game Data ---
+        const ROLES = ['Captain', 'Vice Captain', 'Tank', 'Healer', 'Support'];
+        const CREW_SLOTS = [
+            { name: 'Captain', count: 1 },
+            { name: 'Vice Captain', count: 1 },
+            { name: 'Tank', count: 1 },
+            { name: 'Healer', count: 1 },
+            { name: 'Support', count: 2 }
+        ].flatMap(slot => Array(slot.count).fill(slot.name));
 
-    // Expanded Character Roster (40 Cards)
-    const CARDS = [
-        // Straw Hats + Allies
-        { id: 'luffy', name: 'Monkey D. Luffy', role_affinity: ['Captain', 'Support'], stats: { Attack: 90, Defense: 60, Healing: 10 }, img_url: './images/Monkey D. Luffy_268.png' },
-        { id: 'zoro', name: 'Roronoa Zoro', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 85, Defense: 70, Healing: 5 }, img_url: './images/Roronoa Zoro_268.png' },
-        { id: 'nami', name: 'Nami', role_affinity: ['Support'], stats: { Attack: 40, Defense: 20, Healing: 50 }, img_url: './images/Nami_268.png' },
-        { id: 'sanji', name: 'Vinsmoke Sanji', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 75, Defense: 50, Healing: 25 }, img_url: './images/Sanji_268.png' },
-        { id: 'chopper', name: 'T.T. Chopper', role_affinity: ['Healer', 'Support'], stats: { Attack: 30, Defense: 40, Healing: 80 }, img_url: './images/Tony_Tony_Chopper.png' },
-        { id: 'robin', name: 'Nico Robin', role_affinity: ['Support'], stats: { Attack: 50, Defense: 30, Healing: 30 }, img_url: './images/Nico Robin_latest.png' },
-        { id: 'franky', name: 'Franky', role_affinity: ['Tank', 'Support'], stats: { Attack: 60, Defense: 80, Healing: 0 }, img_url: './images/Franky_268.png' },
-        { id: 'jinbe', name: 'Jinbe', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 70, Defense: 95, Healing: 5 }, img_url: './images/Jinbe_268.png' },
-        { id: 'brook', name: 'Brook', role_affinity: ['Support'], stats: { Attack: 55, Defense: 25, Healing: 30 }, img_url: './images/Brook_268.png' },
-        { id: 'ussop', name: 'God Usopp', role_affinity: ['Support'], stats: { Attack: 45, Defense: 30, Healing: 35 }, img_url: './images/Usopp_268.png' },
-        { id: 'law', name: 'Trafalgar Law', role_affinity: ['Healer', 'Captain'], stats: { Attack: 80, Defense: 40, Healing: 60 }, img_url: './images/Trafalgar_D._Water_Law.png' },
-        { id: 'kid', name: 'Eustass Kid', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 88, Defense: 72, Healing: 0 }, img_url: './images/Eustass Kid_268.png' },
-        { id: 'sabo', name: 'Sabo', role_affinity: ['Vice Captain', 'Captain'], stats: { Attack: 90, Defense: 65, Healing: 5 }, img_url: './images/Sabo_268.png' },
-        { id: 'vivi', name: 'Vivi Nefertari', role_affinity: ['Healer', 'Support'], stats: { Attack: 30, Defense: 20, Healing: 65 }, img_url: './images/Nefertari_Vivi.png' },
-       
-        // Emperors & Commanders
-        { id: 'shanks', name: 'Shanks', role_affinity: ['Captain'], stats: { Attack: 100, Defense: 70, Healing: 0 }, img_url: './images/Shanks_268.png' },
-        { id: 'ace', name: 'Portgas D. Ace', role_affinity: ['Captain', 'Vice Captain'], stats: { Attack: 95, Defense: 50, Healing: 5 }, img_url: './images/Portgas D. Ace_268.png' },
-        { id: 'katakuri', name: 'Katakuri', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 93, Defense: 80, Healing: 0 }, img_url: './images/Charlotte Katakuri_268.png' },
-        { id: 'marco', name: 'Marco the Phoenix', role_affinity: ['Healer', 'Support'], stats: { Attack: 70, Defense: 60, Healing: 95 }, img_url: './images/Marco_268.png' },
-        { id: 'king', name: 'King', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 82, Defense: 98, Healing: 0 }, img_url: './images/King_268.png' },
-        { id: 'beckmann', name: 'Ben Beckmann', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 90, Defense: 70, Healing: 0 }, img_url: './images/Benn_Beckman.png' },
-        { id: 'jozu', name: 'Jozu', role_affinity: ['Tank'], stats: { Attack: 78, Defense: 95, Healing: 0 }, img_url: './images/Jozu_268.png' },
-        { id: 'smoothie', name: 'Smoothie', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 80, Defense: 60, Healing: 15 }, img_url: './images/Charlotte Smoothie_268.png' },
-        { id: 'lasky', name: 'Lucky Roux', role_affinity: ['Tank', 'Support'], stats: { Attack: 70, Defense: 70, Healing: 20 }, img_url: './images/Lucky Roux_268.png' },
-        { id: 'yasopp', name: 'Yasopp', role_affinity: ['Support'], stats: { Attack: 85, Defense: 40, Healing: 0 }, img_url: './images/Yasopp_268.png' },
+        // Expanded Character Roster (40 Cards)
+        const CARDS = [
+            // Straw Hats + Allies
+            { id: 'luffy', name: 'Monkey D. Luffy', role_affinity: ['Captain', 'Support'], stats: { Attack: 90, Defense: 60, Healing: 10 }, img_url: './images/Monkey D. Luffy_268.png' },
+            { id: 'zoro', name: 'Roronoa Zoro', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 85, Defense: 70, Healing: 5 }, img_url: './images/Roronoa Zoro_268.png' },
+            { id: 'nami', name: 'Nami', role_affinity: ['Support'], stats: { Attack: 40, Defense: 20, Healing: 50 }, img_url: './images/Nami_268.png' },
+            { id: 'sanji', name: 'Vinsmoke Sanji', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 75, Defense: 50, Healing: 25 }, img_url: './images/Sanji_268.png' },
+            { id: 'chopper', name: 'T.T. Chopper', role_affinity: ['Healer', 'Support'], stats: { Attack: 30, Defense: 40, Healing: 80 }, img_url: './images/Tony_Tony_Chopper.png' },
+            { id: 'robin', name: 'Nico Robin', role_affinity: ['Support'], stats: { Attack: 50, Defense: 30, Healing: 30 }, img_url: './images/Nico Robin_latest.png' },
+            { id: 'franky', name: 'Franky', role_affinity: ['Tank', 'Support'], stats: { Attack: 60, Defense: 80, Healing: 0 }, img_url: './images/Franky_268.png' },
+            { id: 'jinbe', name: 'Jinbe', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 70, Defense: 95, Healing: 5 }, img_url: './images/Jinbe_268.png' },
+            { id: 'brook', name: 'Brook', role_affinity: ['Support'], stats: { Attack: 55, Defense: 25, Healing: 30 }, img_url: './images/Brook_268.png' },
+            { id: 'ussop', name: 'God Usopp', role_affinity: ['Support'], stats: { Attack: 45, Defense: 30, Healing: 35 }, img_url: './images/Usopp_268.png' },
+            { id: 'law', name: 'Trafalgar Law', role_affinity: ['Healer', 'Captain'], stats: { Attack: 80, Defense: 40, Healing: 60 }, img_url: './images/Trafalgar_D._Water_Law.png' },
+            { id: 'kid', name: 'Eustass Kid', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 88, Defense: 72, Healing: 0 }, img_url: './images/Eustass Kid_268.png' },
+            { id: 'sabo', name: 'Sabo', role_affinity: ['Vice Captain', 'Captain'], stats: { Attack: 90, Defense: 65, Healing: 5 }, img_url: './images/Sabo_268.png' },
+            { id: 'vivi', name: 'Vivi Nefertari', role_affinity: ['Healer', 'Support'], stats: { Attack: 30, Defense: 20, Healing: 65 }, img_url: './images/Nefertari_Vivi.png' },
 
-        // Warlords & Marines
-        { id: 'hancock', name: 'Boa Hancock', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 85, Defense: 40, Healing: 15 }, img_url: './images/Boa Hancock_268.png' },
-        { id: 'doffy', name: 'Doflamingo', role_affinity: ['Captain'], stats: { Attack: 92, Defense: 55, Healing: 3 }, img_url: './images/Donquixote Doflamingo_268.png' },
-        { id: 'mihawk', name: 'Dracule Mihawk', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 98, Defense: 75, Healing: 0 }, img_url: './images/Dracule Mihawk_268.png' },
-        { id: 'kuma', name: 'Bartholomew Kuma', role_affinity: ['Tank', 'Support'], stats: { Attack: 65, Defense: 100, Healing: 0 }, img_url: './images/Bartholomew Kuma_268.png' },
-        { id: 'smoker', name: 'Smoker', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 70, Defense: 88, Healing: 0 }, img_url: './images/Smoker_268.png' },
-        { id: 'koby', name: 'Koby', role_affinity: ['Support'], stats: { Attack: 65, Defense: 45, Healing: 10 }, img_url: './images/Koby_268.png' },
-        { id: 'garp', name: 'Garp', role_affinity: ['Captain', 'Tank'], stats: { Attack: 97, Defense: 90, Healing: 0 }, img_url: './images/Monkey D. Garp_268.png' },
-        { id: 'fujitora', name: 'Fujitora', role_affinity: ['Tank', 'Captain'], stats: { Attack: 85, Defense: 92, Healing: 0 }, img_url: './images/Issho_fujitora.png' },
-        { id: 'akainu', name: 'Akainu', role_affinity: ['Captain'], stats: { Attack: 99, Defense: 80, Healing: 0 }, img_url: './images/Akainu_Sakazuki.png' },
-        { id: 'aokiji', name: 'Aokiji', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 88, Defense: 85, Healing: 0 }, img_url: './images/Kuzan_Aojki.png' },
+            // Emperors & Commanders
+            { id: 'shanks', name: 'Shanks', role_affinity: ['Captain'], stats: { Attack: 100, Defense: 70, Healing: 0 }, img_url: './images/Shanks_268.png' },
+            { id: 'ace', name: 'Portgas D. Ace', role_affinity: ['Captain', 'Vice Captain'], stats: { Attack: 95, Defense: 50, Healing: 5 }, img_url: './images/Portgas D. Ace_268.png' },
+            { id: 'katakuri', name: 'Katakuri', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 93, Defense: 80, Healing: 0 }, img_url: './images/Charlotte Katakuri_268.png' },
+            { id: 'marco', name: 'Marco the Phoenix', role_affinity: ['Healer', 'Support'], stats: { Attack: 70, Defense: 60, Healing: 95 }, img_url: './images/Marco_268.png' },
+            { id: 'king', name: 'King', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 82, Defense: 98, Healing: 0 }, img_url: './images/King_268.png' },
+            { id: 'beckmann', name: 'Ben Beckmann', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 90, Defense: 70, Healing: 0 }, img_url: './images/Benn_Beckman.png' },
+            { id: 'jozu', name: 'Jozu', role_affinity: ['Tank'], stats: { Attack: 78, Defense: 95, Healing: 0 }, img_url: './images/Jozu_268.png' },
+            { id: 'smoothie', name: 'Smoothie', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 80, Defense: 60, Healing: 15 }, img_url: './images/Charlotte Smoothie_268.png' },
+            { id: 'lasky', name: 'Lucky Roux', role_affinity: ['Tank', 'Support'], stats: { Attack: 70, Defense: 70, Healing: 20 }, img_url: './images/Lucky Roux_268.png' },
+            { id: 'yasopp', name: 'Yasopp', role_affinity: ['Support'], stats: { Attack: 85, Defense: 40, Healing: 0 }, img_url: './images/Yasopp_268.png' },
 
-        // Other Notables
-        { id: 'perona', name: 'Perona', role_affinity: ['Support'], stats: { Attack: 35, Defense: 25, Healing: 45 }, img_url: './images/Perona_268.png' },
-        { id: 'ivankov', name: 'E. Ivankov', role_affinity: ['Healer', 'Support'], stats: { Attack: 50, Defense: 30, Healing: 70 }, img_url: './images/Emporio_Ivankov.png' },
-        { id: 'hatchan', name: 'Hatchan', role_affinity: ['Tank', 'Support'], stats: { Attack: 55, Defense: 65, Healing: 10 }, img_url: './images/Hatchan_267.png' },
-        { id: 'buggy', name: 'Buggy D. Clown', role_affinity: ['Captain', 'Support'], stats: { Attack: 20, Defense: 15, Healing: 15 }, img_url: './images/Buggy_268.png' },
-        { id: 'bartolomeo', name: 'Bartolomeo', role_affinity: ['Tank', 'Support'], stats: { Attack: 60, Defense: 75, Healing: 0 }, img_url: './images/Bartolomeo_268.png' },
-        { id: 'cavendish', name: 'Cavendish', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 80, Defense: 35, Healing: 10 }, img_url: './images/Cavendish_268.png' },
-        { id: 'senor', name: 'Senor Pink', role_affinity: ['Tank'], stats: { Attack: 65, Defense: 85, Healing: 0 }, img_url: './images/Senor Pink_268.png' },
-        { id: 'hawkins', name: 'Basil Hawkins', role_affinity: ['Support'], stats: { Attack: 50, Defense: 40, Healing: 30 }, img_url: './images/Basil Hawkins_268.png' },
-        { id: 'apoos', name: 'Scratchmen Apoo', role_affinity: ['Support'], stats: { Attack: 70, Defense: 30, Healing: 10 }, img_url: './images/Scratchmen Apoo_268.png' },
-        { id: 'urouge', name: 'Urouge', role_affinity: ['Tank'], stats: { Attack: 75, Defense: 75, Healing: 0 }, img_url: './images/Urouge_268.png' },
-    ];
+            // Warlords & Marines
+            { id: 'hancock', name: 'Boa Hancock', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 85, Defense: 40, Healing: 15 }, img_url: './images/Boa Hancock_268.png' },
+            { id: 'doffy', name: 'Doflamingo', role_affinity: ['Captain'], stats: { Attack: 92, Defense: 55, Healing: 3 }, img_url: './images/Donquixote Doflamingo_268.png' },
+            { id: 'mihawk', name: 'Dracule Mihawk', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 98, Defense: 75, Healing: 0 }, img_url: './images/Dracule Mihawk_268.png' },
+            { id: 'kuma', name: 'Bartholomew Kuma', role_affinity: ['Tank', 'Support'], stats: { Attack: 65, Defense: 100, Healing: 0 }, img_url: './images/Bartholomew Kuma_268.png' },
+            { id: 'smoker', name: 'Smoker', role_affinity: ['Tank', 'Vice Captain'], stats: { Attack: 70, Defense: 88, Healing: 0 }, img_url: './images/Smoker_268.png' },
+            { id: 'koby', name: 'Koby', role_affinity: ['Support'], stats: { Attack: 65, Defense: 45, Healing: 10 }, img_url: './images/Koby_268.png' },
+            { id: 'garp', name: 'Garp', role_affinity: ['Captain', 'Tank'], stats: { Attack: 97, Defense: 90, Healing: 0 }, img_url: './images/Monkey D. Garp_268.png' },
+            { id: 'fujitora', name: 'Fujitora', role_affinity: ['Tank', 'Captain'], stats: { Attack: 85, Defense: 92, Healing: 0 }, img_url: './images/Issho_fujitora.png' },
+            { id: 'akainu', name: 'Akainu', role_affinity: ['Captain'], stats: { Attack: 99, Defense: 80, Healing: 0 }, img_url: './images/Akainu_Sakazuki.png' },
+            { id: 'aokiji', name: 'Aokiji', role_affinity: ['Vice Captain', 'Tank'], stats: { Attack: 88, Defense: 85, Healing: 0 }, img_url: './images/Kuzan_Aojki.png' },
 
-    // --- Game State ---
-    let gameState = {
-        deck: [],
-        cardPool: [],
-        currentPlayer: 1,
-        players: {
-            1: { team: [], skipped: false, score: 0, scoreBreakdown: {} },
-            2: { team: [], skipped: false, score: 0, scoreBreakdown: {} }
-        },
-        totalTurns: 0,
-        gameEnded: false,
-        cardDrawn: false,
-    };
+            // Other Notables
+            { id: 'perona', name: 'Perona', role_affinity: ['Support'], stats: { Attack: 35, Defense: 25, Healing: 45 }, img_url: './images/Perona_268.png' },
+            { id: 'ivankov', name: 'E. Ivankov', role_affinity: ['Healer', 'Support'], stats: { Attack: 50, Defense: 30, Healing: 70 }, img_url: './images/Emporio_Ivankov.png' },
+            { id: 'hatchan', name: 'Hatchan', role_affinity: ['Tank', 'Support'], stats: { Attack: 55, Defense: 65, Healing: 10 }, img_url: './images/Hatchan_267.png' },
+            { id: 'buggy', name: 'Buggy D. Clown', role_affinity: ['Captain', 'Support'], stats: { Attack: 20, Defense: 15, Healing: 15 }, img_url: './images/Buggy_268.png' },
+            { id: 'bartolomeo', name: 'Bartolomeo', role_affinity: ['Tank', 'Support'], stats: { Attack: 60, Defense: 75, Healing: 0 }, img_url: './images/Bartolomeo_268.png' },
+            { id: 'cavendish', name: 'Cavendish', role_affinity: ['Vice Captain', 'Support'], stats: { Attack: 80, Defense: 35, Healing: 10 }, img_url: './images/Cavendish_268.png' },
+            { id: 'senor', name: 'Senor Pink', role_affinity: ['Tank'], stats: { Attack: 65, Defense: 85, Healing: 0 }, img_url: './images/Senor Pink_268.png' },
+            { id: 'hawkins', name: 'Basil Hawkins', role_affinity: ['Support'], stats: { Attack: 50, Defense: 40, Healing: 30 }, img_url: './images/Basil Hawkins_268.png' },
+            { id: 'apoos', name: 'Scratchmen Apoo', role_affinity: ['Support'], stats: { Attack: 70, Defense: 30, Healing: 10 }, img_url: './images/Scratchmen Apoo_268.png' },
+            { id: 'urouge', name: 'Urouge', role_affinity: ['Tank'], stats: { Attack: 75, Defense: 75, Healing: 0 }, img_url: './images/Urouge_268.png' },
+        ];
 
-    // --- Utility Functions ---
+        // --- Game State ---
+        let gameState = {
+            deck: [],
+            cardPool: [],
+            currentPlayer: 1,
+            players: {
+                1: { team: [], skipped: false, score: 0, scoreBreakdown: {} },
+                2: { team: [], skipped: false, score: 0, scoreBreakdown: {} }
+            },
+            totalTurns: 0,
+            gameEnded: false,
+            cardDrawn: false,
+        };
 
-    /**
-     * Fisher-Yates (Knuth) Shuffle.
-     * @param {Array<Object>} array The array to shuffle.
-     */
-    function shuffleArray(array) {
-        let currentIndex = array.length, randomIndex;
-        while (currentIndex !== 0) {
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex--;
-            [array[currentIndex], array[randomIndex]] = [
-                array[randomIndex], array[currentIndex]];
-        }
-        return array;
-    }
+        // --- Utility Functions ---
 
-    /**
-     * Initializes the game state.
-     */
-    function initGame() {
-        console.log("Game initialized.");
-        gameState.deck = shuffleArray([...CARDS]);
-        // Reset player teams to empty slots
-        gameState.players[1].team = CREW_SLOTS.map(role => ({ role, card: null }));
-        gameState.players[2].team = CREW_SLOTS.map(role => ({ role, card: null }));
-        gameState.currentPlayer = 1;
-        gameState.players[1].skipped = false;
-        gameState.players[2].skipped = false;
-        gameState.gameEnded = false;
-        gameState.totalTurns = 0;
-        gameState.cardPool = [];
-        gameState.cardDrawn = false;
-       
-        // Reset scores and breakdown
-        gameState.players[1].score = 0;
-        gameState.players[2].score = 0;
-        gameState.players[1].scoreBreakdown = {};
-        gameState.players[2].scoreBreakdown = {};
-       
-        renderGame();
-    }
-
-    /**
-     * Draws one card for the player to consider.
-     * @param {boolean} doRender If true, calls renderGame(). Used to prevent double rendering during skip.
-     */
-    function drawCard(doRender = true) {
-        if (gameState.gameEnded || gameState.cardDrawn) return;
-       
-        if (gameState.deck.length === 0) {
-            document.getElementById('game-status').textContent = "Deck is empty! You must place remaining cards.";
-            return;
+        /**
+         * Fisher-Yates (Knuth) Shuffle.
+         * @param {Array<Object>} array The array to shuffle.
+         */
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [
+                    array[randomIndex], array[currentIndex]];
+            }
+            return array;
         }
 
-        gameState.cardPool = [gameState.deck.pop()];
-        gameState.cardDrawn = true;
-       
-        if (doRender) {
+        /**
+         * Initializes the game state.
+         */
+        function initGame() {
+            console.log("Game initialized.");
+            gameState.deck = shuffleArray([...CARDS]);
+            // Reset player teams to empty slots
+            gameState.players[1].team = CREW_SLOTS.map(role => ({ role, card: null }));
+            gameState.players[2].team = CREW_SLOTS.map(role => ({ role, card: null }));
+            gameState.currentPlayer = 1;
+            gameState.players[1].skipped = false;
+            gameState.players[2].skipped = false;
+            gameState.gameEnded = false;
+            gameState.totalTurns = 0;
+            gameState.cardPool = [];
+            gameState.cardDrawn = false;
+
+            // Reset scores and breakdown
+            gameState.players[1].score = 0;
+            gameState.players[2].score = 0;
+            gameState.players[1].scoreBreakdown = {};
+            gameState.players[2].scoreBreakdown = {};
+
             renderGame();
         }
-    }
 
-    /**
-     * Calculates the score and breakdown for a player's crew.
-     * @param {Array<Object>} team The player's crew array.
-     * @returns {{score: number, breakdown: Object}} The score and calculation breakdown.
-     */
-    function calculateScore(team) {
-        let baseStatScore = 0;
-        let synergyBonus = 0;
-        let captainAttack = 0;
-        let captainBonus = 0;
-       
-        team.forEach(slot => {
-            if (slot.card) {
-                const card = slot.card;
-                const role = slot.role;
-               
-                // 1. Base Score
-                const cardBaseScore = card.stats.Attack + card.stats.Defense + card.stats.Healing;
-                baseStatScore += cardBaseScore;
+        /**
+         * Draws one card for the player to consider.
+         * @param {boolean} doRender If true, calls renderGame(). Used to prevent double rendering during skip.
+         */
+        function drawCard(doRender = true) {
+            if (gameState.gameEnded || gameState.cardDrawn) return;
 
-                // 2. Role Synergy Bonus (50 points for matching)
-                if (card.role_affinity.includes(role)) {
-                    synergyBonus += 50;
-                }
-
-                // 3. Track Captain Attack for Multiplier
-                if (role === 'Captain') {
-                    captainAttack = card.stats.Attack;
-                }
+            if (gameState.deck.length === 0) {
+                document.getElementById('game-status').textContent = "Deck is empty! You must place remaining cards.";
+                return;
             }
-        });
 
-        // 4. Calculate Captain Bonus (50% of Captain's Attack)
-        if (captainAttack > 0) {
-            captainBonus = Math.round(captainAttack * 0.5);
-        }
-       
-        const totalScore = baseStatScore + synergyBonus + captainBonus;
+            gameState.cardPool = [gameState.deck.pop()];
+            gameState.cardDrawn = true;
 
-        return {
-            score: totalScore,
-            breakdown: {
-                baseStatScore,
-                synergyBonus,
-                captainAttack,
-                captainBonus,
-                totalScore
+            if (doRender) {
+                renderGame();
             }
-        };
-    }
-
-    /**
-     * Checks if the game has ended and determines the winner.
-     */
-    function checkGameEnd() {
-        const crew1Count = gameState.players[1].team.filter(s => s.card !== null).length;
-        const crew2Count = gameState.players[2].team.filter(s => s.card !== null).length;
-
-        // Game ends when both crews are full (6 cards each)
-        if (crew1Count === 6 && crew2Count === 6) {
-            gameState.gameEnded = true;
-           
-            // Calculate final scores
-            const p1Result = calculateScore(gameState.players[1].team);
-            const p2Result = calculateScore(gameState.players[2].team);
-
-            gameState.players[1].score = p1Result.score;
-            gameState.players[1].scoreBreakdown = p1Result.breakdown;
-            gameState.players[2].score = p2Result.score;
-            gameState.players[2].scoreBreakdown = p2Result.breakdown;
-           
-            renderEndGame();
-        }
-    }
-   
-    // --- UI Rendering ---
-
-    /**
-     * Renders the current state of the game (Drafting or Game Over).
-     */
-    function renderGame() {
-        if (gameState.gameEnded) {
-            renderEndGame();
-            return;
         }
 
-        // Drafting Status Update
-        const playerState = gameState.cardDrawn ? 'Place the Card or Skip it.' : 'Click "Draw Card" to start your turn.';
-        document.getElementById('game-status').textContent =
-            `Turn: ${gameState.totalTurns + 1}. It is Player ${gameState.currentPlayer}'s turn. ${playerState}`;
+        /**
+         * Calculates the score and breakdown for a player's crew.
+         * @param {Array<Object>} team The player's crew array.
+         * @returns {{score: number, breakdown: Object}} The score and calculation breakdown.
+         */
+        function calculateScore(team) {
+            let baseStatScore = 0;
+            let synergyBonus = 0;
+            let captainAttack = 0;
+            let captainBonus = 0;
 
-        renderPlayerHighlights();
-        renderCardPool();
-        // Pass false to ensure stats are hidden during draft
-        renderPlayerBoards(false);
-        renderControls();
-    }
-   
-    /**
-     * Renders the Final Scoreboard and analysis.
-     */
-    function renderEndGame() {
-        // Determine Winner and Set Announcement
-        let announcement = "";
-        let winColor = "";
-       
-        if (gameState.players[1].score > gameState.players[2].score) {
-            announcement = "🏴‍☠️ PLAYER 1 WINS! The One Piece is Yours! 👑";
-            winColor = "text-yellow-400";
-        } else if (gameState.players[2].score > gameState.players[1].score) {
-            announcement = "🏴‍☠️ PLAYER 2 WINS! The One Piece is Yours! 👑";
-            winColor = "text-yellow-400";
-        } else {
-            announcement = "⚔️ A TIE! Both Crews Are Equally Mighty! ⚓";
-            winColor = "text-cyan-400";
+            team.forEach(slot => {
+                if (slot.card) {
+                    const card = slot.card;
+                    const role = slot.role;
+
+                    // 1. Base Score
+                    const cardBaseScore = card.stats.Attack + card.stats.Defense + card.stats.Healing;
+                    baseStatScore += cardBaseScore;
+
+                    // 2. Role Synergy Bonus (50 points for matching)
+                    if (card.role_affinity.includes(role)) {
+                        synergyBonus += 50;
+                    }
+
+                    // 3. Track Captain Attack for Multiplier
+                    if (role === 'Captain') {
+                        captainAttack = card.stats.Attack;
+                    }
+                }
+            });
+
+            // 4. Calculate Captain Bonus (50% of Captain's Attack)
+            if (captainAttack > 0) {
+                captainBonus = Math.round(captainAttack * 0.5);
+            }
+
+            const totalScore = baseStatScore + synergyBonus + captainBonus;
+
+            return {
+                score: totalScore,
+                breakdown: {
+                    baseStatScore,
+                    synergyBonus,
+                    captainAttack,
+                    captainBonus,
+                    totalScore
+                }
+            };
         }
-       
-        document.getElementById('game-status').innerHTML = `<span class="title-font text-3xl font-bold ${winColor}">${announcement}</span>`;
 
-        // Render Scoreboard HTML
-        const controlsArea = document.getElementById('controls-area');
-        controlsArea.innerHTML = `
+        /**
+         * Checks if the game has ended and determines the winner.
+         */
+        function checkGameEnd() {
+            const crew1Count = gameState.players[1].team.filter(s => s.card !== null).length;
+            const crew2Count = gameState.players[2].team.filter(s => s.card !== null).length;
+
+            // Game ends when both crews are full (6 cards each)
+            if (crew1Count === 6 && crew2Count === 6) {
+                gameState.gameEnded = true;
+
+                // Calculate final scores
+                const p1Result = calculateScore(gameState.players[1].team);
+                const p2Result = calculateScore(gameState.players[2].team);
+
+                gameState.players[1].score = p1Result.score;
+                gameState.players[1].scoreBreakdown = p1Result.breakdown;
+                gameState.players[2].score = p2Result.score;
+                gameState.players[2].scoreBreakdown = p2Result.breakdown;
+
+                renderEndGame();
+            }
+        }
+
+        // --- UI Rendering ---
+
+        /**
+         * Renders the current state of the game (Drafting or Game Over).
+         */
+        function renderGame() {
+            if (gameState.gameEnded) {
+                renderEndGame();
+                return;
+            }
+
+            // Drafting Status Update
+            const playerState = gameState.cardDrawn ? 'Place the Card or Skip it.' : 'Click "Draw Card" to start your turn.';
+            document.getElementById('game-status').textContent =
+                `Turn: ${gameState.totalTurns + 1}. It is Player ${gameState.currentPlayer}'s turn. ${playerState}`;
+
+            renderPlayerHighlights();
+            renderCardPool();
+            // Pass false to ensure stats are hidden during draft
+            renderPlayerBoards(false);
+            renderControls();
+        }
+
+        /**
+         * Renders the Final Scoreboard and analysis.
+         */
+        function renderEndGame() {
+            // Determine Winner and Set Announcement
+            let announcement = "";
+            let winColor = "";
+
+            if (gameState.players[1].score > gameState.players[2].score) {
+                announcement = "🏴‍☠️ PLAYER 1 WINS! The One Piece is Yours! 👑";
+                winColor = "text-yellow-400";
+            } else if (gameState.players[2].score > gameState.players[1].score) {
+                announcement = "🏴‍☠️ PLAYER 2 WINS! The One Piece is Yours! 👑";
+                winColor = "text-yellow-400";
+            } else {
+                announcement = "⚔️ A TIE! Both Crews Are Equally Mighty! ⚓";
+                winColor = "text-cyan-400";
+            }
+
+            document.getElementById('game-status').innerHTML = `<span class="title-font text-3xl font-bold ${winColor}">${announcement}</span>`;
+
+            // Render Scoreboard HTML
+            const controlsArea = document.getElementById('controls-area');
+            controlsArea.innerHTML = `
             <h3 class="text-3xl font-bold text-center mb-6 text-red-500 title-font">FINAL SCOREBOARD</h3>
            
             <div class="flex flex-col md:flex-row justify-around gap-6 mb-8">
@@ -387,27 +521,27 @@
                 ${[1, 2].map(id => renderDetailedCrewAnalysis(id)).join('')}
             </div>
         `;
-       
-        // Final board rendering with stats revealed (true)
-        renderPlayerBoards(true);
-    }
 
-    /**
-     * Renders a detailed analysis for a player's crew at the end of the game.
-     */
-    function renderDetailedCrewAnalysis(playerId) {
-        const player = gameState.players[playerId];
-       
-        const crewCards = player.team.map(slot => {
-            const card = slot.card;
-            // Guard against empty slots if logic somehow allowed it, though it shouldn't
-            if (!card) return '';
+            // Final board rendering with stats revealed (true)
+            renderPlayerBoards(true);
+        }
 
-            const isSynergistic = card.role_affinity.includes(slot.role);
-            const synergyText = isSynergistic ? 'Synergy: +50 Score' : 'No Synergy';
-            const synergyColor = isSynergistic ? 'text-green-400' : 'text-red-400';
-           
-            return `
+        /**
+         * Renders a detailed analysis for a player's crew at the end of the game.
+         */
+        function renderDetailedCrewAnalysis(playerId) {
+            const player = gameState.players[playerId];
+
+            const crewCards = player.team.map(slot => {
+                const card = slot.card;
+                // Guard against empty slots if logic somehow allowed it, though it shouldn't
+                if (!card) return '';
+
+                const isSynergistic = card.role_affinity.includes(slot.role);
+                const synergyText = isSynergistic ? 'Synergy: +50 Score' : 'No Synergy';
+                const synergyColor = isSynergistic ? 'text-green-400' : 'text-red-400';
+
+                return `
                 <div class="bg-gray-700 p-3 rounded-lg flex items-center shadow-lg">
                     <img src="${card.img_url}" class="w-10 h-14 rounded-md mr-3" onerror="this.onerror=null; this.src='https://placehold.co/40x56/0d2847/ccc?text=C';">
                     <div class="flex-grow">
@@ -419,9 +553,9 @@
                     </div>
                 </div>
             `;
-        }).join('');
-       
-        return `
+            }).join('');
+
+            return `
             <div class="bg-gray-700/50 p-4 rounded-xl border border-cyan-500 shadow-2xl">
                 <h5 class="text-xl font-bold mb-3 text-cyan-300">Player ${playerId} Crew Analysis</h5>
                 <div class="space-y-2">
@@ -429,18 +563,18 @@
                 </div>
             </div>
         `;
-    }
+        }
 
-    /**
-     * Renders the final score card for the scoreboard.
-     */
-    function renderFinalScoreCard(playerId) {
-        const player = gameState.players[playerId];
-        const breakdown = player.scoreBreakdown;
-       
-        const cardTitle = playerId === 1 ? 'Wild Pirates Crew' : 'Killer Pirates';
+        /**
+         * Renders the final score card for the scoreboard.
+         */
+        function renderFinalScoreCard(playerId) {
+            const player = gameState.players[playerId];
+            const breakdown = player.scoreBreakdown;
 
-        return `
+            const cardTitle = playerId === 1 ? 'Wild Pirates Crew' : 'Killer Pirates';
+
+            return `
             <div class="w-full md:w-1/2 p-4 bg-gray-900 rounded-xl shadow-2xl border border-yellow-500">
                 <h4 class="text-2xl font-bold text-center mb-3 text-yellow-500">${cardTitle} (P${playerId})</h4>
                 <div class="text-center mb-4">
@@ -456,29 +590,29 @@
                 </div>
             </div>
         `;
-    }
-
-    /**
-     * Highlights the current player's board.
-     */
-    function renderPlayerHighlights() {
-        document.getElementById('player-1-board').classList.remove('player-highlight');
-        document.getElementById('player-2-board').classList.remove('player-highlight');
-        if (!gameState.gameEnded) {
-            document.getElementById(`player-${gameState.currentPlayer}-board`).classList.add('player-highlight');
         }
-    }
 
-    /**
-     * Renders the single drawn card during the draft phase.
-     */
-    function renderCardPool() {
-        const poolEl = document.getElementById('controls-area');
-       
-        if (gameState.gameEnded) return; // Handled by renderEndGame
+        /**
+         * Highlights the current player's board.
+         */
+        function renderPlayerHighlights() {
+            document.getElementById('player-1-board').classList.remove('player-highlight');
+            document.getElementById('player-2-board').classList.remove('player-highlight');
+            if (!gameState.gameEnded) {
+                document.getElementById(`player-${gameState.currentPlayer}-board`).classList.add('player-highlight');
+            }
+        }
 
-        // This structure is rebuilt on every renderGame call when not ended
-        poolEl.innerHTML = `
+        /**
+         * Renders the single drawn card during the draft phase.
+         */
+        function renderCardPool() {
+            const poolEl = document.getElementById('controls-area');
+
+            if (gameState.gameEnded) return; // Handled by renderEndGame
+
+            // This structure is rebuilt on every renderGame call when not ended
+            poolEl.innerHTML = `
             <div id="card-pool-content" class="flex justify-center gap-4 mb-6 min-h-48">
                 <!-- Card will be injected here -->
             </div>
@@ -492,193 +626,204 @@
             </div>
         `;
 
-        const cardPoolContentEl = document.getElementById('card-pool-content');
-        if (gameState.cardPool.length === 0) {
-            cardPoolContentEl.innerHTML = `
+            const cardPoolContentEl = document.getElementById('card-pool-content');
+            if (gameState.cardPool.length === 0) {
+                cardPoolContentEl.innerHTML = `
                 <div onclick="drawCard()" class="text-center p-4 border border-gray-600 rounded-lg w-full sm:w-40 h-48 flex items-center justify-center cursor-pointer">
                     <p class="text-sm text-gray-400 font-semibold">
                         Click to Draw
                     </p>
                 </div>`;
-            return;
-        }
+                return;
+            }
 
-        const card = gameState.cardPool[0];
-        const affinityText = card.role_affinity.join(', ');
+            const card = gameState.cardPool[0];
+            const affinityText = card.role_affinity.join(', ');
 
-        // STATS ARE INTENTIONALLY HIDDEN HERE, as requested by the user
-        const cardHtml = `
+            // STATS ARE INTENTIONALLY HIDDEN HERE, as requested by the user
+            const cardHtml = `
             <div class="card card-drawn w-full sm:w-40 p-3 rounded-lg shadow-lg">
                 <img src="${card.img_url}" alt="${card.name}" class="w-full h-auto rounded-md mb-2" onerror="this.onerror=null; this.src='https://placehold.co/100x140/0d2847/ccc?text=Card';">
                 <h4 class="text-lg font-bold break-all text-yellow-300">${card.name}</h4>
                 <p class="text-xs italic text-gray-400 mt-2">Stats Hidden During Draft</p>
             </div>
         `;
-        cardPoolContentEl.innerHTML += cardHtml;
-    }
+            cardPoolContentEl.innerHTML += cardHtml;
+        }
 
-    /**
-     * Renders both player crew boards.
-     * @param {boolean} showStats If true, reveal character stats on the board (used only at End Game).
-     */
-    function renderPlayerBoards(showStats = false) {
-        for (let playerId of [1, 2]) {
-            const crewEl = document.getElementById(`crew-${playerId}`);
-            crewEl.innerHTML = '';
-           
-            gameState.players[playerId].team.forEach((slot, index) => {
-                const isCurrentPlayer = gameState.currentPlayer === playerId;
-                const isReadyToPlace = isCurrentPlayer && gameState.cardDrawn && !slot.card;
-               
-                const card = slot.card;
-                let cardContent = '';
-               
-                if (card) {
-                    const isSynergistic = card.role_affinity.includes(slot.role);
-                    const synergyIndicator = isSynergistic ? 'Synergy Bonus!' : 'Standard Role';
-                    const synergyColor = isSynergistic ? 'text-green-400 font-semibold' : 'text-red-400';
-                   
-                    // Stats are only displayed if showStats is true (i.e., end game)
-                    const statsDisplay = showStats ?
-                        `<div class="text-xs space-y-0.5 text-gray-300 mt-1">
+        /**
+         * Renders both player crew boards.
+         * @param {boolean} showStats If true, reveal character stats on the board (used only at End Game).
+         */
+        function renderPlayerBoards(showStats = false) {
+            for (let playerId of [1, 2]) {
+                const crewEl = document.getElementById(`crew-${playerId}`);
+                crewEl.innerHTML = '';
+
+                gameState.players[playerId].team.forEach((slot, index) => {
+                    const isCurrentPlayer = gameState.currentPlayer === playerId;
+                    const isReadyToPlace = isCurrentPlayer && gameState.cardDrawn && !slot.card;
+
+                    const card = slot.card;
+                    let cardContent = '';
+
+                    if (card) {
+                        const isSynergistic = card.role_affinity.includes(slot.role);
+                        const synergyIndicator = isSynergistic ? 'Synergy Bonus!' : 'Standard Role';
+                        const synergyColor = isSynergistic ? 'text-green-400 font-semibold' : 'text-red-400';
+
+                        // Stats are only displayed if showStats is true (i.e., end game)
+                        const statsDisplay = showStats ?
+                            `<div class="text-xs space-y-0.5 text-gray-300 mt-1">
                             <p>⚔️ Atk: ${card.stats.Attack}</p>
                             <p>🛡️ Def: ${card.stats.Defense}</p>
                             <p>🧪 Heal: ${card.stats.Healing}</p>
                          </div>` : '';
 
-                    cardContent = `
+                        cardContent = `
                         <img src="${card.img_url}" alt="${card.name}" class="w-full h-auto rounded-md mb-2" onerror="this.onerror=null; this.src='https://placehold.co/100x140/0d2847/ccc?text=Card';">
                         <h4 class="text-sm font-bold truncate text-yellow-300">${card.name}</h4>
                         <p class="text-xs ${synergyColor}">${synergyIndicator}</p>
                         ${statsDisplay}
                     `;
-                } else {
-                    cardContent = `
+                    } else {
+                        cardContent = `
                         <p class="text-center font-bold text-gray-400">${slot.role}</p>
                         <p class="text-center text-xs text-gray-500">
                             ${isReadyToPlace ? 'Click to Place Card' : 'Empty Slot'}
                         </p>
                     `;
-                }
+                    }
 
-                const slotClass = isReadyToPlace ? 'slot-active' : 'cursor-default';
-                const synergyBg = (card && card.role_affinity.includes(slot.role)) ? 'bg-green-900/40' : '';
+                    const slotClass = isReadyToPlace ? 'slot-active' : 'cursor-default';
+                    const synergyBg = (card && card.role_affinity.includes(slot.role)) ? 'bg-green-900/40' : '';
 
-                crewEl.innerHTML += `
+                    crewEl.innerHTML += `
                     <div class="slot p-2 rounded-lg shadow-inner flex flex-col justify-between ${slotClass} ${synergyBg}"
                          onclick="placeCard(${playerId}, ${index})">
                          <p class="font-semibold text-center text-sm mb-1 text-cyan-200">${slot.role}</p>
                         ${cardContent}
                     </div>
                 `;
-            });
+                });
 
-            // Update board score/count display
-            const crewCount = gameState.players[playerId].team.filter(s => s.card !== null).length;
-            const scoreDisplayEl = document.getElementById(`player-${playerId}-board`).querySelector('h2');
-           
-            if (gameState.gameEnded) {
-                 scoreDisplayEl.textContent = `Player ${playerId}: Final Score ${gameState.players[playerId].score}`;
-            } else {
-                 scoreDisplayEl.textContent = `Player ${playerId}: Crew (${crewCount}/6)`;
+                // Update board score/count display
+                const crewCount = gameState.players[playerId].team.filter(s => s.card !== null).length;
+                const scoreDisplayEl = document.getElementById(`player-${playerId}-board`).querySelector('h2');
+
+                if (gameState.gameEnded) {
+                    scoreDisplayEl.textContent = `Player ${playerId}: Final Score ${gameState.players[playerId].score}`;
+                } else {
+                    scoreDisplayEl.textContent = `Player ${playerId}: Crew (${crewCount}/6)`;
+                }
             }
         }
-    }
 
-    /**
-     * Renders the control button states during the draft.
-     */
-    function renderControls() {
-        if (gameState.gameEnded) return;
+        /**
+         * Renders the control button states during the draft.
+         */
+        function renderControls() {
+            if (gameState.gameEnded) return;
 
-        const drawBtn = document.getElementById('draw-button');
-        const skipBtn = document.getElementById('skip-button');
-        const player = gameState.players[gameState.currentPlayer];
-       
-        // Draw Button Logic: Enabled only if no card is currently drawn and deck is not empty
-        drawBtn.disabled = gameState.cardDrawn || gameState.deck.length === 0;
+            const drawBtn = document.getElementById('draw-button');
+            const skipBtn = document.getElementById('skip-button');
+            const player = gameState.players[gameState.currentPlayer];
 
-        // Skip Button Logic: Enabled only if a card is drawn AND player hasn't skipped
-        skipBtn.disabled = !gameState.cardDrawn || player.skipped;
-       
-        // Prevent skipping the last card if deck is empty
-        if (gameState.deck.length === 0 && gameState.cardDrawn) {
-            skipBtn.disabled = true;
-        }
-    }
+            // Draw Button Logic: Enabled only if no card is currently drawn and deck is not empty
+            drawBtn.disabled = gameState.cardDrawn || gameState.deck.length === 0;
 
-    // --- Game Actions ---
+            // Skip Button Logic: Enabled only if a card is drawn AND player hasn't skipped
+            skipBtn.disabled = !gameState.cardDrawn || player.skipped;
 
-    /**
-     * Places the drawn card into a player's crew slot.
-     */
-    function placeCard(playerId, slotIndex) {
-        if (gameState.gameEnded || playerId !== gameState.currentPlayer) return;
-        if (!gameState.cardDrawn || gameState.cardPool.length === 0) return;
-
-        const player = gameState.players[playerId];
-        const slot = player.team[slotIndex];
-
-        // Captain slot must be filled first
-        if (slot.role === 'Captain' && player.team.filter(s => s.role === 'Captain' && s.card !== null).length === 0) {
-            // Proceed
-        } else if (slot.role === 'Captain' && player.team.filter(s => s.role === 'Captain' && s.card !== null).length > 0) {
-            // Already has a Captain, cannot place here again
-             return;
-        } else if (!slot.card) {
-            // Proceed for non-Captain or subsequent Captain placements (if multiple roles allowed)
-        } else {
-            return; // Slot is full
+            // Prevent skipping the last card if deck is empty
+            if (gameState.deck.length === 0 && gameState.cardDrawn) {
+                skipBtn.disabled = true;
+            }
         }
 
-        slot.card = gameState.cardPool[0];
-        gameState.cardPool = [];
-       
-        endTurn(true);
-    }
+        // --- Game Actions ---
 
-    /**
-     * Uses the player's skip action, discarding the current card and drawing a new one.
-     */
-    function skipTurn() {
-        const player = gameState.players[gameState.currentPlayer];
-        if (gameState.gameEnded || !gameState.cardDrawn || player.skipped || gameState.deck.length === 0) return;
-       
-        // 1. Use skip allowance
-        player.skipped = true;
+        /**
+         * Places the drawn card into a player's crew slot.
+         */
+        function placeCard(playerId, slotIndex) {
+            if (gameState.gameEnded || playerId !== gameState.currentPlayer) return;
+            if (!gameState.cardDrawn || gameState.cardPool.length === 0) return;
 
-        // 2. Discard current card and reset the flag (Allows redrawing)
-        gameState.cardPool = [];
-        gameState.cardDrawn = false;
-       
-        // 3. Draw a new card immediately (stay on the same player's turn)
-        drawCard(false);
-       
-        // 4. A skip is an action, so increment global turn count
-        gameState.totalTurns++;
+            const player = gameState.players[playerId];
+            const slot = player.team[slotIndex];
 
-        renderGame();
-    }
+            // Captain slot must be filled first
+            if (slot.role === 'Captain' && player.team.filter(s => s.role === 'Captain' && s.card !== null).length === 0) {
+                // Proceed
+            } else if (slot.role === 'Captain' && player.team.filter(s => s.role === 'Captain' && s.card !== null).length > 0) {
+                // Already has a Captain, cannot place here again
+                return;
+            } else if (!slot.card) {
+                // Proceed for non-Captain or subsequent Captain placements (if multiple roles allowed)
+            } else {
+                return; // Slot is full
+            }
 
-    /**
-     * Finalizes the turn and switches to the next player if placement occurred.
-     */
-    function endTurn(placementOccurred) {
-        if (placementOccurred) {
-            gameState.totalTurns++;
+            slot.card = gameState.cardPool[0];
+            gameState.cardPool = [];
+
+            endTurn(true);
+        }
+
+        /**
+         * Uses the player's skip action, discarding the current card and drawing a new one.
+         */
+        function skipTurn() {
+            const player = gameState.players[gameState.currentPlayer];
+            if (gameState.gameEnded || !gameState.cardDrawn || player.skipped || gameState.deck.length === 0) return;
+
+            // 1. Use skip allowance
+            player.skipped = true;
+
+            // 2. Discard current card and reset the flag (Allows redrawing)
+            gameState.cardPool = [];
             gameState.cardDrawn = false;
-           
-            // Switch player
-            gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+
+            // 3. Draw a new card immediately (stay on the same player's turn)
+            drawCard(false);
+
+            // 4. A skip is an action, so increment global turn count
+            gameState.totalTurns++;
+
+            renderGame();
         }
 
-        checkGameEnd();
-        renderGame();
-    }
+        /**
+         * Finalizes the turn and switches to the next player if placement occurred.
+         */
+        function endTurn(placementOccurred) {
+            if (placementOccurred) {
+                gameState.totalTurns++;
+                gameState.cardDrawn = false;
 
-    // Initialize the game when the window loads
-    window.onload = initGame;
+                // Switch player
+                gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+            }
 
-</script>
+            checkGameEnd();
+            renderGame();
+        }
+
+        // Initialize the game when the window loads
+        window.onload = initGame;
+        function showCredits() {
+            alert(
+                "COMMUNITY GAME\n\n" +
+                "Created by: Parteek Kumar\n\n" +
+                "Free to use, modify, and share with attribution.\n\n" +
+                "All characters are owned by the One Piece team.\n" +
+                "This is a fan-made, non-commercial game for fun.\n\n" +
+                "Suggestions welcome on LinkedIn:\n" +
+                "linkedin.com/in/parteekkumar/"
+            );
+        }
+    </script>
 </body>
+
 </html>
